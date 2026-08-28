@@ -5,13 +5,46 @@ ETL pipeline for the assessment API: extracts `/daily-visits` (flat) and
 partitioned, clustered BigQuery tables — idempotently, with retries, explicit
 data-quality gates, and secrets kept strictly in environment variables.
 
+```mermaid
+flowchart LR
+    subgraph EX["extract/"]
+        direction TB
+        A1["<b>/daily-visits</b><br/>paginated GET · retry/backoff"]
+        A2["<b>/ga-sessions-data</b><br/>paginated GET · retry/backoff"]
+    end
+
+    subgraph TR["transform/"]
+        direction TB
+        B1["normalize"]
+        B2["drift check"] --> B3["flatten"] --> B4["dedupe"]
+    end
+
+    subgraph QA["quality/ · pre-load"]
+        direction TB
+        C1["pre-load DQ"]
+        C2["pre-load DQ"]
+    end
+
+    subgraph LO["load/"]
+        direction TB
+        D1["MERGE on visit_date<br/><i>expiring staging table</i>"]
+        D2["partition replace<br/>ga_sessions_flat$YYYYMMDD"]
+    end
+
+    T1[("daily_visits")]
+    T2[("ga_sessions_flat")]
+    P["post-load DQ"]
+    R{{"reconciliation"}}
+
+    A1 --> B1 --> C1 --> D1 --> T1
+    A2 --> B2
+    B4 --> C2 --> D2 --> T2 --> P --> R
+    T1 --> R
 ```
-             ┌────────────── extract ──────────────┐   ┌── transform ──┐   ┌───────── load ─────────┐
- /daily-visits ──► paginated GET, retry/backoff ──► normalize ──► pre-load DQ ──► MERGE on visit_date ──► daily_visits
- /ga-sessions ───► paginated GET, retry/backoff ──► drift check ► flatten ► dedupe ► pre-load DQ
-                                                       └──► partition replace (table$YYYYMMDD) ──► ga_sessions_flat
-                                                                                   └──► post-load DQ + reconciliation
-```
+
+Both loads are idempotent, so any date can be rerun. `--dry-run` stops after
+the pre-load checks and writes JSONL to `artifacts/samples/` instead of
+loading. Details in [`docs/02-pipeline-design.md`](docs/02-pipeline-design.md).
 
 ## Quickstart
 
