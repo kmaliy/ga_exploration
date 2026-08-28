@@ -136,28 +136,70 @@ class TestSessionsPostLoad:
 
 
 class TestReconciliation:
-    def test_within_tolerance_passes(self):
-        loader = FakeLoader([[{"daily_visits": 100, "session_visits": 97}]])
-        quality.check_reconciliation(loader, DAY).raise_if_failed()
+    """Sessions are counted by the UTC date of visit_start_time, which is the day
+    /daily-visits is counting, so the two sides are expected to agree exactly.
+    """
 
-    def test_beyond_tolerance_warns_but_does_not_fail(self):
-        # Live finding: the endpoints count visits differently (2016-08-01:
-        # 1711 sessions vs 1296 daily visits) — drift is a signal, not a gate.
-        loader = FakeLoader([[{"daily_visits": 100, "session_visits": 132}]])
+    @staticmethod
+    def _row(daily, sessions, prior_rows=500, undated=0):
+        return [
+            {
+                "daily_visits": daily,
+                "session_visits": sessions,
+                "prior_partition_rows": prior_rows,
+                "undated_rows": undated,
+            }
+        ]
+
+    def test_exact_match_passes_silently(self):
+        loader = FakeLoader([self._row(1963, 1963)])
+        report = quality.check_reconciliation(loader, DAY)
+        report.raise_if_failed()
+        assert report.warnings == []
+
+    def test_query_counts_by_utc_date_over_both_partitions(self):
+        loader = FakeLoader([self._row(100, 100)])
+        quality.check_reconciliation(loader, DAY)
+        sql = loader.queries[0]
+        assert "DATE(visit_start_time) = @d" in sql
+        assert "session_date BETWEEN DATE_SUB(@d, INTERVAL 1 DAY) AND @d" in sql
+        # partition predicate is still present, so this does not full-scan
+        assert "session_date" in sql
+
+    def test_any_drift_warns_but_does_not_fail(self):
+        loader = FakeLoader([self._row(100, 97)])
         report = quality.check_reconciliation(loader, DAY)
         report.raise_if_failed()  # must not raise
-        assert any("exceeds" in warning for warning in report.warnings)
+        assert any("genuine discrepancy" in w for w in report.warnings)
+
+    def test_drift_with_empty_prior_partition_says_so(self):
+        loader = FakeLoader([self._row(1963, 1548, prior_rows=0)])
+        report = quality.check_reconciliation(loader, DAY)
+        report.raise_if_failed()
+        assert any("backfilled" in w for w in report.warnings)
+
+    def test_drift_with_undated_rows_says_so(self):
+        loader = FakeLoader([self._row(100, 95, undated=5)])
+        report = quality.check_reconciliation(loader, DAY)
+        report.raise_if_failed()
+        assert any("NULL visit_start_time" in w for w in report.warnings)
+
+    def test_tolerance_can_absorb_a_known_gap(self):
+        loader = FakeLoader([self._row(100, 97)])
+        report = quality.check_reconciliation(loader, DAY, tolerance_pct=5.0)
+        report.raise_if_failed()
+        assert report.warnings == []
 
     def test_zero_sessions_with_visits_fails(self):
-        loader = FakeLoader([[{"daily_visits": 100, "session_visits": 0}]])
+        loader = FakeLoader([self._row(100, 0)])
         with pytest.raises(DataQualityError, match="zero sessions loaded"):
             quality.check_reconciliation(loader, DAY).raise_if_failed()
 
     def test_zero_visits_with_sessions_fails(self):
-        loader = FakeLoader([[{"daily_visits": 0, "session_visits": 50}]])
+        loader = FakeLoader([self._row(0, 50)])
         with pytest.raises(DataQualityError, match="daily_visits=0"):
             quality.check_reconciliation(loader, DAY).raise_if_failed()
 
     def test_missing_daily_row_is_warning_only(self):
-        loader = FakeLoader([[{"daily_visits": None, "session_visits": 50}]])
+        loader = FakeLoader([self._row(None, 50)])
         quality.check_reconciliation(loader, DAY).raise_if_failed()  # warns, no raise

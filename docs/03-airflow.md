@@ -59,7 +59,8 @@ only, never row data. In production, forward to StatsD/OpenTelemetry:
 - `rows_extracted` / `rows_loaded` per endpoint per date (sudden drops = upstream trouble)
 - `duplicates_dropped` (should be ~0; a spike means upstream started double-serving)
 - `drift_warnings` count (non-empty = API contract evolving)
-- reconciliation drift % between `daily_visits.visits` and session counts
+- reconciliation drift between `daily_visits.visits` and sessions counted by UTC
+  date (expected to be exactly 0; anything else is a missed page or a partial load)
 - task duration vs the 3-minute timeout (alert at >70% sustained)
 - DAG-level: run success rate, time since last success (freshness SLA: 1 scheduled interval + 2h)
 

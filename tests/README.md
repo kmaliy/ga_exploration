@@ -8,8 +8,12 @@
 
 `conftest.py` and `fixtures/` sit at this level so all three directories share them.
 
+1. everything; DAG tests self-skip if Airflow is absent
+2. explicitly exclude the Airflow-dependent tests
+3. fast inner loop
+
 ```bash
-pytest                 # everything; DAG tests self-skip if Airflow is absent
-pytest -m "not dag"    # explicitly exclude the Airflow-dependent tests
-pytest tests/unit      # fast inner loop
+pytest
+pytest -m "not dag"
+pytest tests/unit
 ```

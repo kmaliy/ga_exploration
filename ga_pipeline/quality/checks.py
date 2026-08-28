@@ -13,7 +13,7 @@ the full picture instead of one violation per rerun.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from google.cloud import bigquery
@@ -25,10 +25,10 @@ from ga_pipeline.transform import session_key
 
 logger = logging.getLogger(__name__)
 
-# Drift between daily_visits.visits and the per-date session visit sum above
-# which a warning is logged. The endpoints count visits differently, so this
-# is a reporting threshold, not a failure threshold.
-RECONCILIATION_TOLERANCE_PCT = 5.0
+# Reconciliation compares like with like (see check_reconciliation), so the two
+# endpoints are expected to agree exactly and any drift is worth reporting.
+# Raise this only to absorb a known, explained discrepancy.
+RECONCILIATION_TOLERANCE_PCT = 0.0
 
 REQUIRED_SESSION_FIELDS = ("session_date", "full_visitor_id", "visit_id")
 NON_NEGATIVE_SESSION_FIELDS = (
@@ -60,8 +60,6 @@ class QualityReport:
 
     def raise_if_failed(self) -> None:
         """Raise DataQualityError with all violations, or log success."""
-        for warning in self.warnings:
-            logger.warning("[DQ:%s] %s", self.context, warning)
         if self.violations:
             details = "; ".join(self.violations)
             raise DataQualityError(
@@ -174,11 +172,28 @@ def check_reconciliation(
     partition_date: date,
     tolerance_pct: float = RECONCILIATION_TOLERANCE_PCT,
 ) -> QualityReport:
-    """Cross-endpoint sanity: daily_visits.visits vs session visits per date.
+    """Cross-endpoint sanity: daily_visits.visits vs sessions on the same calendar day.
 
-    Fails only when one side is entirely missing (broken/partial load);
-    metric drift between the endpoints is recorded as a warning; see
-    docs/01-api-exploration.md for details.
+    The two endpoints date a session differently. ``/ga-sessions-data`` shards on
+    GA's ``date``, which is the property's local day (UTC-7 for this property:
+    every session_date spans 07:00Z to 07:00Z the next day). ``/daily-visits``
+    counts by UTC date. So a session at 20:00 local on the 1st is 03:00 UTC on
+    the 2nd, and the two sources file it under different dates.
+
+    Comparing sessions by ``session_date`` against ``daily_visits`` therefore
+    compares two different days, and the gap is the day-over-day change in
+    evening traffic — routinely 5-30%, which made the old check warn on almost
+    every run. Instead we count sessions by the UTC date of ``visit_start_time``,
+    which is the same day ``/daily-visits`` is counting. On verified data the two
+    then agree exactly, so drift is a real signal: a missed page, a partial load,
+    a double load.
+
+    Sessions belonging to UTC day D live in the ``D-1`` and ``D`` partitions, so
+    both are read; the ``session_date`` predicate keeps this partition-pruned.
+
+    Fails only when one side is entirely missing (a broken or partial load).
+    Drift is reported as a warning, so the run continues with the data flagged
+    rather than blocked.
     """
     report = QualityReport(context=f"reconciliation/{partition_date}")
     daily = loader.table_id(DAILY_VISITS_TABLE)
@@ -190,7 +205,14 @@ def check_reconciliation(
         SELECT
           (SELECT visits FROM `{daily}` WHERE visit_date = @d) AS daily_visits,
           (SELECT COALESCE(SUM(totals_visits), COUNT(*))
-             FROM `{sessions}` WHERE session_date = @d) AS session_visits
+             FROM `{sessions}`
+            WHERE session_date BETWEEN DATE_SUB(@d, INTERVAL 1 DAY) AND @d
+              AND DATE(visit_start_time) = @d)             AS session_visits,
+          (SELECT COUNT(*) FROM `{sessions}`
+            WHERE session_date = DATE_SUB(@d, INTERVAL 1 DAY)) AS prior_partition_rows,
+          (SELECT COUNT(*) FROM `{sessions}`
+            WHERE session_date BETWEEN DATE_SUB(@d, INTERVAL 1 DAY) AND @d
+              AND visit_start_time IS NULL)                AS undated_rows
         """,  # noqa: S608 - table ids from config; values parameterized
         params,
     )
@@ -201,9 +223,11 @@ def check_reconciliation(
 
     daily_count = rows[0]["daily_visits"]
     session_count = rows[0]["session_visits"] or 0
+    prior_rows = rows[0].get("prior_partition_rows") or 0
+    undated = rows[0].get("undated_rows") or 0
 
     # Hard failure only when one side is missing entirely, which means a
-    # broken or partial load rather than a metric-definition mismatch.
+    # broken or partial load rather than a counting difference.
     if daily_count == 0 and session_count != 0:
         report.fail(f"daily_visits=0 but {session_count} session visit(s) loaded")
         return report
@@ -213,24 +237,26 @@ def check_reconciliation(
     if daily_count == 0:
         return report
 
-    # The endpoints date a session differently: /ga-sessions-data shards on
-    # GA's `date` (the property's local timezone, Pacific) while /daily-visits
-    # counts by UTC date, so evening sessions land in the next UTC day. On a
-    # normal day the spill in and out cancels out to ~1%; on 2016-08-01, the
-    # first day of the dataset, nothing spills in and the gap is 32%
-    # (1711 sessions, 415 of them starting after midnight UTC, vs 1296 daily
-    # visits: 1711 - 415 == 1296 exactly). Drift is therefore a warning.
     drift_pct = abs(daily_count - session_count) / daily_count * 100
-    if drift_pct > tolerance_pct:
+    if drift_pct <= tolerance_pct:
+        return report
+
+    detail = f"daily_visits={daily_count}, sessions={session_count}, drift {drift_pct:.1f}%"
+    if prior_rows == 0:
         report.warn(
-            f"visits drift {drift_pct:.1f}% exceeds {tolerance_pct}% "
-            f"(daily_visits={daily_count}, sessions={session_count}); expected, "
-            "the endpoints count visits differently, see docs/01-api-exploration.md"
+            f"{detail}; the {partition_date - timedelta(days=1)} partition is empty, so "
+            "sessions that belong to this UTC day but are dated to the previous local day "
+            "are not loaded yet — reconcile again once that partition is backfilled"
         )
-    elif drift_pct > 0:
+    elif undated:
         report.warn(
-            f"visits drift {drift_pct:.1f}% within tolerance "
-            f"(daily_visits={daily_count}, sessions={session_count})"
+            f"{detail}; {undated} row(s) have a NULL visit_start_time and cannot be "
+            "assigned to a UTC day, which accounts for at least part of the gap"
+        )
+    else:
+        report.warn(
+            f"{detail}; both partitions are loaded and every row is timestamped, so this "
+            "is a genuine discrepancy — check for a missed page or a partial load"
         )
     return report
 

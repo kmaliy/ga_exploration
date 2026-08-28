@@ -20,7 +20,7 @@ uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-
 (`python data_pipeline.py …` works identically inside any environment with the
 dependencies installed.) Dry-run output lands in `artifacts/samples/`.
 
-The pipeline creates the dataset and tables automatically (idempotently);
+The pipeline creates the dataset and tables automatically
 [`ga_pipeline/sql/ddl.sql`](../ga_pipeline/sql/ddl.sql) documents the exact
 definitions, and `tests/unit/test_schema_ddl_parity.py` keeps that file honest
 against `ga_pipeline/load/schemas.py`.
@@ -77,7 +77,7 @@ Post-load (SQL against the destination, before the table is trusted):
     broken/partial load); metric drift is recorded and warned on, because the
     endpoints demonstrably count visits differently (32% gap on 2016-08-01, see
     [01-api-exploration.md](01-api-exploration.md))
-
+12. _
 Any violation raises `DataQualityError` and fails the CLI/Airflow task. By
 construction reconciliation runs *after* both loads landed, so even its failure
 mode leaves data present but flagged untrusted. The standalone query in

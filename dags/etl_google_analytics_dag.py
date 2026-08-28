@@ -45,6 +45,11 @@ LOCAL_TZ = pendulum.timezone("Europe/Berlin")
 # two tasks always share one window and reconciliation has both sides. The
 # cost is the 2017-08-02 daily-visits row, which has no session counterpart to
 # reconcile against; load it via the CLI if it is ever needed.
+#
+# Reconciliation counts sessions by UTC date, so day D reads the D-1 and D
+# session partitions. Within a run the loop loads D-1 first; on the very
+# first date of a backfill D-1 is absent and the check reports that rather
+# than reading it as drift.
 DATASET_MIN_DATE = min(DAILY_VISITS_RANGE[0], GA_SESSIONS_RANGE[0])
 DATASET_MAX_DATE = GA_SESSIONS_RANGE[1]
 

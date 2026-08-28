@@ -121,7 +121,12 @@ def run_daily_visits(
 
 
 def run_reconciliation(start_date: date, end_date: date, loader: BigQueryLoader | None = None) -> None:
-    """Cross-endpoint reconciliation for each date in the range (post-load)."""
+    """Cross-endpoint reconciliation for each date in the range (post-load).
+
+    Reconciling day D counts sessions by the UTC date of ``visit_start_time``,
+    which draws on the ``D-1`` and ``D`` session partitions. Callers should
+    have loaded both; the check says so explicitly when ``D-1`` is empty.
+    """
     loader = loader or BigQueryLoader(BigQuerySettings.from_env())
     for day in _date_range(start_date, end_date):
         quality.check_reconciliation(loader, day).raise_if_failed()

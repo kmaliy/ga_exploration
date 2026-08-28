@@ -4,8 +4,8 @@ The project is managed with [uv](https://docs.astral.sh/uv/): `pyproject.toml`
 declares dependencies and `uv.lock` pins the exact resolved versions (committed
 for reproducibility).
 
-There is deliberately no `requirements.txt` — the lockfile supersedes it as the
-pinned-dependency manifest. Plain-pip consumers can generate one on demand:
+`requirements.txt` only added because it was part of the requirements set by the assessment, it 
+plays no role in the project and can be deleted. Can be generated on demand by the following command.
 
 ```bash
 uv export --format requirements-txt --no-dev --extra llm -o requirements.txt
@@ -41,8 +41,6 @@ Afterwards, fill in `.env` and load it into your shell yourself:
 set -a; source .env; set +a
 ```
 
-(a child process cannot export variables into your shell, so this step is manual).
-
 ## Secrets policy
 
 Everything sensitive — `GA_API_KEY`, the service-account path,
@@ -50,10 +48,14 @@ Everything sensitive — `GA_API_KEY`, the service-account path,
 git or in the image; `.env` and `*.json` credentials are gitignored.
 `setup.sh` never reads, prints, or transmits secrets.
 
-The key that appeared in the assessment PDF should be treated as compromised
-and rotated.
-
 ## Testing
+
+1. everything; DAG tests self-skip without Airflow
+2. explicitly exclude the Airflow-dependent tests
+3. fast inner loop
+4. fast inner loop and DAG contract tests against real Airflow 2.10 
+5. lint (config in pyproject.toml)
+6. formatting
 
 ```bash
 pytest                                # everything; DAG tests self-skip without Airflow
@@ -63,13 +65,5 @@ uv sync --group airflow && pytest     # + DAG contract tests against real Airflo
 ruff check .                          # lint (config in pyproject.toml)
 ruff format --check .                 # formatting
 ```
-
-Coverage spans: flattening (camelCase + snake_case), type coercion, dedupe,
-schema drift, pagination/envelope/error taxonomy of the client, every DQ check
-(pass and fail paths), DDL/spec parity, dry-run end-to-end, anomaly detection,
-failure-triage redaction and fallbacks, the NL→SQL guardrails
-(DML/allowlist/partition/cost refusals), and — where Airflow is installed — DAG
-contract tests (schedule, retries, timeouts, dependencies, and the redacting
-failure callback).
 
 See [`tests/README.md`](../tests/README.md) for how the suite is organised.

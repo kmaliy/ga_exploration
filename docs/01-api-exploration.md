@@ -5,10 +5,11 @@ Step 1 results. Two tools were used against the live API:
 - `scripts/explore_api.sh`: nine curl probes covering the contract, pagination
   and error handling. Log: `artifacts/reports/api_exploration.log`
 - `scripts/profile_api.py`: profiles 600 records across six days (including
-  Black Friday and Christmas) and probes limits, ordering and rate limiting.
-  Report: `artifacts/reports/api_profile_report.md`
+  days that could generate higher traffic such as Christmas, Black Friday) 
+  and probes limits, ordering and rate limiting.
+  Report will be generated: `artifacts/reports/api_profile_report.md`
 
-## Reproducing it
+## Generate the report
 
 ```bash
 set -a; source .env; set +a

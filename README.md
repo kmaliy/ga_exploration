@@ -3,7 +3,7 @@
 ETL pipeline for the assessment API: extracts `/daily-visits` (flat) and
 `/ga-sessions-data` (nested), flattens sessions, and loads both into
 partitioned, clustered BigQuery tables — idempotently, with retries, explicit
-data-quality gates, and secrets kept strictly in environment variables.
+data-quality gates and tests.
 
 ```mermaid
 flowchart LR
@@ -42,18 +42,23 @@ flowchart LR
     T1 --> R
 ```
 
-Both loads are idempotent, so any date can be rerun. `--dry-run` stops after
+__Both loads are idempotent, so any date can be rerun. `--dry-run` stops after
 the pre-load checks and writes JSONL to `artifacts/samples/` instead of
-loading. Details in [`docs/02-pipeline-design.md`](docs/02-pipeline-design.md).
+loading. Details in [`docs/02-pipeline-design.md`](docs/02-pipeline-design.md).__
 
 ## Quickstart
 
-```bash
-./scripts/setup.sh                  # idempotent bootstrap: uv sync, .env, lint + tests
-set -a; source .env; set +a         # load your credentials
+1. bootstrap: uv sync, .env, lint + tests
+2. load your credentials
+3. dry run of the pipeline
+4. run of the pipeline to ingest to BigQuery
 
-uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-07
+```bash
+./scripts/setup.sh
+set -a; source .env; set +a
+
 uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
+uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-07
 ```
 
 Full setup, secrets policy and test commands: [`docs/00-setup.md`](docs/00-setup.md).
@@ -71,9 +76,9 @@ Full setup, secrets policy and test commands: [`docs/00-setup.md`](docs/00-setup
 ## Repository layout
 
 ```
-data_pipeline.py            CLI entry point (Step 2 deliverable)
+data_pipeline.py            CLI entry point
 pyproject.toml / uv.lock    uv-managed dependencies; the lock pins exact versions
-Dockerfile                  container image (Step 4)
+Dockerfile                  container image
 
 ga_pipeline/                the implementation, grouped by pipeline stage
 ├── cli.py                  Typer interface
@@ -87,9 +92,9 @@ ga_pipeline/                the implementation, grouped by pipeline stage
 ├── llm/                    Step 5, optional; behind the `llm` extra
 └── sql/                    reference DDL + reconciliation query (packaged)
 
-dags/                       Airflow DAG (Step 3)
+dags/                       Airflow DAG
 docs/                       design docs, one per step
-scripts/                    bootstrap and Step 1 exploration probes
+scripts/                    bootstrap and API exploration probes
 tests/                      unit / integration / dag  (see tests/README.md)
 artifacts/
 ├── reports/                committed Step 1 evidence
