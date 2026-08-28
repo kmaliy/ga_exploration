@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 app = typer.Typer(
     name="data_pipeline",
-    help="ETL: assessment GA API -> BigQuery (idempotent, quality-checked).",
+    help="ETL: GA analytics API -> BigQuery (idempotent, quality-checked).",
     add_completion=False,
     pretty_exceptions_show_locals=False,
 )

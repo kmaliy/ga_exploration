@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 LOCAL_TZ = pendulum.timezone("Europe/Berlin")
 
-# The assessment dataset is fixed history; runs outside it become no-ops.
+# The dataset is fixed history; runs outside it become no-ops.
 # Single source of truth: ga_pipeline.config, which the CLI validates against
 # too. Both endpoints are clamped to the narrower (sessions) end date so the
 # two tasks always share one window and reconciliation has both sides. The

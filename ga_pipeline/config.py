@@ -21,7 +21,7 @@ GA_SESSIONS_RANGE = (date(2016, 8, 1), date(2017, 8, 1))
 
 @dataclass(frozen=True)
 class ApiSettings:
-    """Settings for the assessment API."""
+    """Settings for the analytics API."""
 
     base_url: str
     api_key: str

@@ -1,4 +1,4 @@
-"""Extract layer: talking to the assessment API.
+"""Extract layer: talking to the analytics API.
 
 Re-exported here so callers can depend on the layer rather than the module:
 ``from ga_pipeline.extract import AssessmentApiClient``.

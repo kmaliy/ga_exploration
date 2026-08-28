@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ga-pipeline"
 version = "1.0.0"
-description = "ETL pipeline: Google Analytics assessment API -> BigQuery"
+description = "ETL pipeline: Google Analytics API -> BigQuery"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

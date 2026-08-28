@@ -1,4 +1,4 @@
-"""HTTP client for the assessment API.
+"""HTTP client for the analytics API.
 
 Uses one requests.Session with retry/backoff for 429 and 5xx responses.
 Errors that are worth retrying at the task level become TransientApiError,
@@ -28,7 +28,7 @@ _RECORD_CONTAINER_KEYS = ("data", "items", "results", "records", "rows")
 
 
 class AssessmentApiClient:
-    """Thin, retrying client for the two assessment endpoints."""
+    """Thin, retrying client for the two API endpoints."""
 
     def __init__(self, settings: ApiSettings, session: requests.Session | None = None) -> None:
         self._settings = settings

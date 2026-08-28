@@ -10,13 +10,11 @@ __pycache__
 
 # Secrets: never in the build context
 .env
-service-account*.json
-*service_account*.json
+*application_default_credentials.json
 
 # Not needed in the image
 docs
 artifacts
 scripts
-sql
 tests
 dags

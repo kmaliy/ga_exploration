@@ -1,13 +1,16 @@
-# Step 4 — container image for the ETL module (uv-managed).
+# Container image for the ETL module (uv-managed).
 #
 # Build:
 #   docker build -t ga-pipeline:1.0.0 .
 #
-# Run (secrets via environment only — never baked into the image):
+# Run (secrets via environment only — never baked into the image).
+# BigQuery auth is Application Default Credentials, mounted read-only:
+#   ADC=$HOME/.config/gcloud/application_default_credentials.json
 #   docker run --rm \
 #     --env-file .env \
-#     -v "$PWD/service-account.json:/secrets/sa.json:ro" \
-#     -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json \
+#     -v "$ADC:/gcloud/adc.json:ro" \
+#     -e GOOGLE_APPLICATION_CREDENTIALS=/gcloud/adc.json \
+#     -e GOOGLE_CLOUD_PROJECT="$BQ_PROJECT" \
 #     ga-pipeline:1.0.0 \
 #     run --start-date 2016-08-01 --end-date 2016-08-07
 #

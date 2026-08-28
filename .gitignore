@@ -10,8 +10,7 @@ dist/
 .env
 
 # Secrets — never commit credentials
-service-account*.json
-*service_account*.json
+*application_default_credentials.json
 credentials/*.json
 
 # Tool caches

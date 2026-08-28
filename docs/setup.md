@@ -37,9 +37,15 @@ set -a; source .env; set +a
 
 ## Secrets
 
-`GA_API_KEY`, the service-account path and `ANTHROPIC_API_KEY` come from the
-environment. `.env` and `*.json` credentials are gitignored, and nothing secret
-goes into the image. `setup.sh` never reads or prints their values.
+`GA_API_KEY` and `ANTHROPIC_API_KEY` come from the environment. BigQuery uses
+Application Default Credentials, so there is no key file to manage:
+
+```bash
+gcloud auth application-default login
+```
+
+`.env` and credential JSON are gitignored, and nothing secret goes into the
+image. `setup.sh` never reads or prints their values.
 
 ## Test
 
@@ -57,13 +63,37 @@ ruff check . && ruff format --check .
 
 ```bash
 docker build -t ga-pipeline:1.0.0 .
+```
+
+A dry run needs the API key and nothing else:
+
+```bash
+mkdir -p out
+docker run --rm -e GA_API_KEY="$GA_API_KEY" \
+  -v "$PWD/out:/app/artifacts/samples" \
+  ga-pipeline:1.0.0 run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
+```
+
+A real load needs BigQuery credentials. Mount your ADC file read-only rather
+than baking a key into the image:
+
+```bash
+set -a; source .env; set +a
+ADC="$HOME/.config/gcloud/application_default_credentials.json"
+test -f "$ADC" || gcloud auth application-default login
+
 docker run --rm \
   --env-file .env \
-  -v "$PWD/service-account.json:/secrets/sa.json:ro" \
-  -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json \
+  -v "$ADC:/gcloud/adc.json:ro" \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/gcloud/adc.json \
+  -e GOOGLE_CLOUD_PROJECT="$BQ_PROJECT" \
   ga-pipeline:1.0.0 \
   run --start-date 2016-08-01 --end-date 2016-08-07
 ```
+
+Check the ADC file exists before mounting. Docker silently creates a *directory*
+at a missing bind-mount source, and the client then fails with
+`IsADirectoryError`.
 
 The image installs from `uv.lock` with `--locked`, runs as a non-root user, and
 carries no dev tooling. Credentials arrive at `docker run` time, never in a

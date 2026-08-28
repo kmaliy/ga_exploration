@@ -48,8 +48,8 @@ JSONL to `artifacts/samples/` instead of loading.
 ## Quickstart
 
 ```bash
-./scripts/setup.sh                                    # uv sync, .env, lint, tests
-set -a; source .env; set +a                           # load credentials
+./scripts/setup.sh
+set -a; source .env; set +a
 
 uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
 uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-07
@@ -83,13 +83,13 @@ Deleting `llm/` leaves a working pipeline.
 
 ## Docs
 
-| | |
-|---|---|
-| [setup.md](docs/setup.md) | install, configure, test, run in Docker |
-| [api.md](docs/api.md) | what the API actually does, and what that changed |
+| |                                                   |
+|---|---------------------------------------------------|
+| [setup.md](docs/setup.md) | install, configure, test, run in Docker           |
+| [api.md](docs/api.md) | Google analytics API Analysis                     |
 | [pipeline.md](docs/pipeline.md) | idempotency, partitioning, quality gates, retries |
-| [airflow.md](docs/airflow.md) | schedule, alerting, PII |
-| [llm.md](docs/llm.md) | optional summary, triage and NL→SQL features |
+| [airflow.md](docs/airflow.md) | schedule, alerting, PII                           |
+| [llm.md](docs/llm.md) | optional summary, triage and NL→SQL features      |
 
 ## Known gaps
 

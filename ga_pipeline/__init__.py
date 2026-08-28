@@ -1,8 +1,8 @@
-"""ETL pipeline: Google Analytics assessment API -> BigQuery.
+"""ETL pipeline: Google Analytics API -> BigQuery.
 
 Layout follows the pipeline stages:
 
-* :mod:`ga_pipeline.extract` — assessment API client
+* :mod:`ga_pipeline.extract` — analytics API client
 * :mod:`ga_pipeline.transform` — raw records to destination row shapes
 * :mod:`ga_pipeline.quality` — pre- and post-load data quality gates
 * :mod:`ga_pipeline.load` — BigQuery table specs and the loader
