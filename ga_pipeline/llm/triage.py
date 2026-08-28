@@ -37,7 +37,7 @@ _REDACTIONS: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
-# First response per exception class (see ga_pipeline.exceptions and docs/DAG.md).
+# First response per exception class (see ga_pipeline.exceptions and docs/03-airflow.md).
 _PLAYBOOK: dict[str, str] = {
     "ConfigError": (
         "Missing or invalid environment configuration; retries will not help. "

@@ -8,6 +8,34 @@ Step 1 results. Two tools were used against the live API:
   Black Friday and Christmas) and probes limits, ordering and rate limiting.
   Report: `artifacts/reports/api_profile_report.md`
 
+## Reproducing it
+
+```bash
+set -a; source .env; set +a
+chmod +x scripts/explore_api.sh scripts/setup.sh
+mkdir -p artifacts/reports
+
+./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
+uv run python scripts/profile_api.py --sections profile,limits,stability,ratelimit
+```
+
+## The five findings that changed the pipeline
+
+1. Pagination must stop on `pagination.has_next` — a page past the end returns
+   HTTP 500.
+2. `/daily-visits` uses `visit_date` / `total_visits`, not the field names in
+   the spec.
+3. Session records carry no `deviceCategory` and only a truncated
+   `hits_sample`; some geo fields contain a literal placeholder string instead
+   of null.
+4. Most invalid input returns 500 rather than 4xx, so date windows are
+   validated before calling.
+5. `limit` is capped at 500, and no revenue or transaction fields appeared in
+   600 profiled records.
+
+Each one led to a concrete change, listed under
+[What this changed in the pipeline](#what-this-changed-in-the-pipeline) below.
+
 ## Endpoints at a glance
 
 | | `/daily-visits` | `/ga-sessions-data` |
@@ -75,7 +103,7 @@ in the right columns, which is the only coverage possible without live data.
 
 The table is not a straight copy of the export: `customDimensions` and
 `hits[]` are deliberately left out because they can carry client-injected PII
-(see `docs/DAG.md`).
+(see `docs/03-airflow.md`).
 
 Three fields the API does populate are kept after a second pass over the
 profile: `trafficSource.referralPath` (about 47% of the sessions on
@@ -83,7 +111,7 @@ profile: `trafficSource.referralPath` (about 47% of the sessions on
 `geoNetwork.networkDomain` as `geo_metro` and `geo_network_domain`.
 `geo_metro` completes the geo hierarchy between region and city;
 `geo_network_domain` is a quasi-identifier and carries a caveat in
-`docs/DAG.md`.
+`docs/03-airflow.md`.
 
 Dropped on purpose: `adContent`, populated in under 1% of records, and
 `cityId`, `latitude`, `longitude` and `networkLocation`, which contain nothing

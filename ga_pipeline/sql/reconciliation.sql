@@ -41,7 +41,7 @@ SELECT
     WHEN sessions.session_visits IS NULL             THEN 'ERROR: daily_visits row, no sessions loaded'
     WHEN ABS(SAFE_DIVIDE(sessions.session_visits - daily.daily_visits,
                          daily.daily_visits)) <= 0.05 THEN 'ok (within 5%)'
-    ELSE 'warn: endpoints disagree (expected; see docs/API_EXPLORATION.md)'
+    ELSE 'warn: endpoints disagree (expected; see docs/01-api-exploration.md)'
   END                                                  AS status
 FROM daily
 FULL OUTER JOIN sessions USING (d)

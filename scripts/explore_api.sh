@@ -71,4 +71,4 @@ curl -sS -G -w '\n[http_status=%{http_code} time=%{time_total}s]\n' \
   "${BASE_URL}/daily-visits" || true
 echo
 
-echo "Done. Findings are documented in docs/API_EXPLORATION.md."
+echo "Done. Findings are documented in docs/01-api-exploration.md."

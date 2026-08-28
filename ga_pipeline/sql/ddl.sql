@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `${BQ_PROJECT}.${BQ_DATASET}.ga_sessions_flat` (
   totals_new_visits                  INT64,
   -- The next four columns, plus traffic_campaign below, are populated in the
   -- source dataset (bigquery-public-data.google_analytics_sample) but are not
-  -- returned by this API, so they stay NULL. See docs/API_EXPLORATION.md.
+  -- returned by this API, so they stay NULL. See docs/01-api-exploration.md.
   totals_time_on_site_seconds        INT64,
   totals_transactions                INT64,
   totals_transaction_revenue_micros  INT64,

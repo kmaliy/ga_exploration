@@ -178,7 +178,7 @@ def check_reconciliation(
 
     Fails only when one side is entirely missing (broken/partial load);
     metric drift between the endpoints is recorded as a warning; see
-    docs/API_EXPLORATION.md for details.
+    docs/01-api-exploration.md for details.
     """
     report = QualityReport(context=f"reconciliation/{partition_date}")
     daily = loader.table_id(DAILY_VISITS_TABLE)
@@ -225,7 +225,7 @@ def check_reconciliation(
         report.warn(
             f"visits drift {drift_pct:.1f}% exceeds {tolerance_pct}% "
             f"(daily_visits={daily_count}, sessions={session_count}); expected, "
-            "the endpoints count visits differently, see docs/API_EXPLORATION.md"
+            "the endpoints count visits differently, see docs/01-api-exploration.md"
         )
     elif drift_pct > 0:
         report.warn(

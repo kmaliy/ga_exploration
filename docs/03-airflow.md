@@ -1,4 +1,12 @@
-# DAG documentation — `etl_google_analytics`
+# Airflow (Step 3)
+
+`dags/etl_google_analytics_dag.py`: Wednesdays 06:00 & 18:00 Europe/Berlin
+(`0 6,18 * * 3`), `retries=2` with a 5-minute delay, 3-minute
+`execution_timeout` per task, both endpoints loading in parallel followed by a
+dedicated reconciliation task.
+
+Contract tests live in `tests/dag/` and run against a real Airflow 2.10 install
+(`uv sync --group airflow`).
 
 ## Schedule & windowing
 
