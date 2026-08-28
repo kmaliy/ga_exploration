@@ -18,7 +18,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-from ga_pipeline import llm_client
+from ga_pipeline.llm import client as llm_client
 
 logger = logging.getLogger(__name__)
 

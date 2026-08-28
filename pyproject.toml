@@ -30,8 +30,10 @@ airflow = ["apache-airflow~=2.10.5"]
 [tool.uv]
 default-groups = ["dev"]
 
+[tool.setuptools.packages.find]
+include = ["ga_pipeline*"]
+
 [tool.setuptools]
-packages = ["ga_pipeline"]
 py-modules = ["data_pipeline"]
 
 [tool.pytest.ini_options]

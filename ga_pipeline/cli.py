@@ -105,7 +105,7 @@ def summarize(
     end_date: EndDate,
 ) -> None:
     """Step 5: LLM narrative over loaded aggregates (rule-based without an API key)."""
-    from ga_pipeline.llm_summary import summarize_range
+    from ga_pipeline.llm.summary import summarize_range
 
     with _PipelineErrorsAsExitCode():
         text = summarize_range(start_date.date(), end_date.date())
@@ -120,7 +120,7 @@ def ask(
     ] = 100,
 ) -> None:
     """Step 5: NL->SQL with guardrails (read-only, partition-filtered, cost-capped)."""
-    from ga_pipeline.nl_sql import ask as ask_question
+    from ga_pipeline.llm.nl_sql import ask as ask_question
 
     with _PipelineErrorsAsExitCode():
         result = ask_question(question, max_scanned_bytes=max_scanned_mb * 1024 * 1024)

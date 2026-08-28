@@ -1,9 +1,9 @@
 import pytest
 import requests
 
-from ga_pipeline.api_client import AssessmentApiClient
 from ga_pipeline.config import ApiSettings
 from ga_pipeline.exceptions import FatalApiError, TransientApiError
+from ga_pipeline.extract.api_client import AssessmentApiClient
 
 SETTINGS = ApiSettings(base_url="https://api.test", api_key="test-key", page_size=2)
 

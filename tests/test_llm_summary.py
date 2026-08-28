@@ -1,6 +1,6 @@
 from datetime import date
 
-from ga_pipeline import llm_summary
+from ga_pipeline.llm import summary as llm_summary
 
 
 class FakeLoader:

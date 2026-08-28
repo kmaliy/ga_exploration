@@ -20,9 +20,9 @@ from typing import Any
 
 from google.cloud import bigquery
 
-from ga_pipeline.bq_loader import BigQueryLoader
 from ga_pipeline.exceptions import DataQualityError
-from ga_pipeline.schemas import DAILY_VISITS_TABLE, GA_SESSIONS_TABLE
+from ga_pipeline.load.bq_loader import BigQueryLoader
+from ga_pipeline.load.schemas import DAILY_VISITS_TABLE, GA_SESSIONS_TABLE
 from ga_pipeline.transform import session_key
 
 logger = logging.getLogger(__name__)

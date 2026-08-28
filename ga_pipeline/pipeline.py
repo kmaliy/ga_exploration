@@ -25,14 +25,14 @@ from pathlib import Path
 from typing import Any
 
 from ga_pipeline import quality, transform
-from ga_pipeline.api_client import AssessmentApiClient
-from ga_pipeline.bq_loader import BigQueryLoader
 from ga_pipeline.config import (
     DAILY_VISITS_RANGE,
     GA_SESSIONS_RANGE,
     ApiSettings,
     BigQuerySettings,
 )
+from ga_pipeline.extract.api_client import AssessmentApiClient
+from ga_pipeline.load.bq_loader import BigQueryLoader
 
 logger = logging.getLogger(__name__)
 

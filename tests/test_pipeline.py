@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 
-from ga_pipeline.api_client import AssessmentApiClient
+from ga_pipeline.extract.api_client import AssessmentApiClient
 from ga_pipeline.pipeline import run_range
 
 

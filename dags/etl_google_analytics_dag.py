@@ -68,7 +68,7 @@ def _notify_failure(context: dict) -> None:
     the pipeline's exception taxonomy to a first response, and never raises;
     without ``ANTHROPIC_API_KEY`` the deterministic message is the alert.
     """
-    from ga_pipeline.llm_triage import triage_failure
+    from ga_pipeline.llm.triage import triage_failure
 
     task_instance = context["ti"]
     metadata = {

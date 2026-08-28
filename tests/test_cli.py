@@ -64,7 +64,7 @@ class TestRun:
 class TestSummarize:
     def test_summarize_prints_result(self, monkeypatch):
         monkeypatch.setattr(
-            "ga_pipeline.llm_summary.summarize_range",
+            "ga_pipeline.llm.summary.summarize_range",
             lambda start, end: f"summary {start}..{end}",
         )
         result = runner.invoke(app, ["summarize", "--start-date", "2016-08-01", "--end-date", "2016-08-31"])

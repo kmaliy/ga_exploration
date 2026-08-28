@@ -1,7 +1,7 @@
 import pytest
 
-from ga_pipeline import nl_sql
 from ga_pipeline.exceptions import ConfigError, SqlGuardrailError
+from ga_pipeline.llm import nl_sql
 
 ALLOWED = {"p.d.daily_visits", "p.d.ga_sessions_flat"}
 PARTITIONS = {"visit_date", "session_date"}

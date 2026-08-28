@@ -17,10 +17,10 @@ from typing import Any
 
 from google.cloud import bigquery
 
-from ga_pipeline import llm_client
-from ga_pipeline.bq_loader import BigQueryLoader
 from ga_pipeline.config import BigQuerySettings
-from ga_pipeline.schemas import DAILY_VISITS_TABLE, GA_SESSIONS_TABLE
+from ga_pipeline.llm import client as llm_client
+from ga_pipeline.load.bq_loader import BigQueryLoader
+from ga_pipeline.load.schemas import DAILY_VISITS_TABLE, GA_SESSIONS_TABLE
 
 logger = logging.getLogger(__name__)
 

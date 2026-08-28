@@ -25,7 +25,7 @@ from google.cloud import bigquery
 
 from ga_pipeline.config import BigQuerySettings
 from ga_pipeline.exceptions import LoadError, TransientLoadError
-from ga_pipeline.schemas import (
+from ga_pipeline.load.schemas import (
     ALL_SPECS,
     DAILY_VISITS_SPEC,
     GA_SESSIONS_SPEC,

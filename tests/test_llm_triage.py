@@ -1,4 +1,4 @@
-from ga_pipeline import llm_triage
+from ga_pipeline.llm import triage as llm_triage
 
 META = {
     "dag": "etl_google_analytics",

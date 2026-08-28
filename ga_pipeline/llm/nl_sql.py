@@ -28,11 +28,11 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from ga_pipeline import llm_client
-from ga_pipeline.bq_loader import BigQueryLoader
 from ga_pipeline.config import BigQuerySettings
 from ga_pipeline.exceptions import ConfigError, SqlGuardrailError, TransientApiError
-from ga_pipeline.schemas import ALL_SPECS
+from ga_pipeline.llm import client as llm_client
+from ga_pipeline.load.bq_loader import BigQueryLoader
+from ga_pipeline.load.schemas import ALL_SPECS
 
 logger = logging.getLogger(__name__)
 
