@@ -46,13 +46,10 @@ class TestFlattenSession:
         assert row["geo_country"] == "United States"
 
     def test_referral_path_is_kept(self, ga_sessions_raw):
-        assert transform.flatten_session(ga_sessions_raw[1], LOADED_AT)[
-            "traffic_referral_path"
-        ] == "/yt/about/"
         assert (
-            transform.flatten_session(ga_sessions_raw[0], LOADED_AT)["traffic_referral_path"]
-            is None
+            transform.flatten_session(ga_sessions_raw[1], LOADED_AT)["traffic_referral_path"] == "/yt/about/"
         )
+        assert transform.flatten_session(ga_sessions_raw[0], LOADED_AT)["traffic_referral_path"] is None
 
     def test_ga_export_only_fields_map_when_present(self):
         """Columns kept for GA-export compatibility. This API never sends them,

@@ -153,5 +153,3 @@ with DAG(
     )
 
     [extract_load_daily_visits, extract_load_ga_sessions] >> reconcile_endpoints
-
-
