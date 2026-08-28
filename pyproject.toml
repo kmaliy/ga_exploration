@@ -37,3 +37,69 @@ py-modules = ["data_pipeline"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+# --------------------------------------------------------------------------- #
+# ruff  (was ruff.toml; folded in so all tool config lives in one file)
+# --------------------------------------------------------------------------- #
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = [
+    ".venv",
+    "build",
+    "dist",
+    "notebooks",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes (unused imports, undefined names)
+    "I",     # isort (import ordering)
+    "B",     # flake8-bugbear (likely bugs)
+    "UP",    # pyupgrade (modernize syntax)
+    "SIM",   # flake8-simplify
+    "RUF",   # ruff-specific rules
+    "S",     # flake8-bandit (security)
+    "C4",    # flake8-comprehensions
+    "PT",    # flake8-pytest-style
+    "A",     # flake8-builtins (don't shadow builtins)
+    "N",     # pep8-naming
+    "T20",   # flake8-print (no print in committed code)
+    "SLF",   # flake8-self (no private member access)
+    "ARG",   # flake8-unused-arguments
+    "ERA",   # eradicate (commented-out code)
+    "TRY",   # tryceratops (exception handling)
+    "ANN",   # flake8-annotations (type hints on public APIs)
+    "D",     # pydocstyle (google convention)
+]
+ignore = [
+    "E501",    # line length: ruff format handles it
+    "S101",    # asserts allowed (finer control via per-file-ignores)
+    "TRY003",  # long exception messages: too noisy
+    "TRY300",  # move return to else: often less readable
+    "TRY301",  # raise in inner function: false positives
+    "B904",    # raise from: not always the right chain
+    "ANN401",  # disallow Any: too restrictive
+    "D100",    # missing module docstring: noisy on small modules
+    "D104",    # missing package docstring
+    "D107",    # missing __init__ docstring: class docstring covers it
+    "D203",    # conflicts with D211
+    "D212",    # conflicts with D213
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PT011", "ARG", "ANN", "D"]   # tests skip type/docstring/security rigor
+"**/__init__.py" = ["F401", "D"]                 # re-exports, no module docstring
+"scripts/**" = ["T20", "D"]                      # scripts may print
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
