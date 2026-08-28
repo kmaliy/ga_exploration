@@ -1,0 +1,100 @@
+[
+  {
+    "channelGrouping": "Organic Search",
+    "customDimensions": [{"index": 4, "value": "EMEA"}],
+    "date": "20160801",
+    "device": {"browser": "Safari", "isMobile": true, "operatingSystem": "iOS"},
+    "fullVisitorId": "1234567890123456789",
+    "geoNetwork": {
+      "city": "London",
+      "cityId": "not available in demo dataset",
+      "continent": "Europe",
+      "country": "United Kingdom",
+      "latitude": "not available in demo dataset",
+      "longitude": "not available in demo dataset",
+      "metro": "London",
+      "networkDomain": "virginm.net",
+      "networkLocation": "not available in demo dataset",
+      "region": "England",
+      "subContinent": "Northern Europe"
+    },
+    "hits_sample": [
+      {
+        "hitNumber": 1,
+        "hostname": "shop.googlemerchandisestore.com",
+        "isInteraction": true,
+        "pagePath": "/home",
+        "pageTitle": "Home",
+        "time": 0,
+        "type": "PAGE"
+      }
+    ],
+    "totals": {"bounces": null, "hits": 4, "newVisits": 1, "pageviews": 4, "timeOnSite": 121, "visits": 1},
+    "trafficSource": {
+      "adContent": null,
+      "keyword": null,
+      "medium": "(none)",
+      "referralPath": null,
+      "source": "(direct)"
+    },
+    "visitId": 1470046245,
+    "visitNumber": 1,
+    "visitStartTime": 1470046245
+  },
+  {
+    "channelGrouping": "Social",
+    "customDimensions": [{"index": 4, "value": "North America"}],
+    "date": "20160801",
+    "device": {"browser": "Chrome", "isMobile": false, "operatingSystem": "Windows"},
+    "fullVisitorId": "9876543210987654321",
+    "geoNetwork": {
+      "city": "not available in demo dataset",
+      "cityId": "not available in demo dataset",
+      "continent": "Americas",
+      "country": "United States",
+      "latitude": "not available in demo dataset",
+      "longitude": "not available in demo dataset",
+      "metro": "not available in demo dataset",
+      "networkDomain": "cox.net",
+      "networkLocation": "not available in demo dataset",
+      "region": "not available in demo dataset",
+      "subContinent": "Northern America"
+    },
+    "hits_sample": [
+      {
+        "hitNumber": 1,
+        "hostname": "shop.googlemerchandisestore.com",
+        "isInteraction": true,
+        "pagePath": "/google+redesign/shop+by+brand/youtube",
+        "pageTitle": "YouTube | Shop by Brand | Google Merchandise Store",
+        "time": 0,
+        "type": "PAGE"
+      }
+    ],
+    "totals": {"bounces": null, "hits": 7, "newVisits": null, "pageviews": 7, "visits": 1},
+    "trafficSource": {
+      "adContent": null,
+      "keyword": null,
+      "medium": "referral",
+      "referralPath": "/yt/about/",
+      "source": "youtube.com"
+    },
+    "visitId": 1470051234,
+    "visitNumber": 3,
+    "visitStartTime": 1470051234
+  },
+  {
+    "channelGrouping": "Social",
+    "customDimensions": [{"index": 4, "value": "North America"}],
+    "date": "20160801",
+    "device": {"browser": "Chrome", "isMobile": false, "operatingSystem": "Windows"},
+    "fullVisitorId": "9876543210987654321",
+    "geoNetwork": {"country": "United States", "continent": "Americas"},
+    "hits_sample": [],
+    "totals": {"bounces": 1, "hits": 1, "pageviews": 1, "visits": 1},
+    "trafficSource": {"medium": "referral", "source": "youtube.com"},
+    "visitId": 1470051234,
+    "visitNumber": 3,
+    "visitStartTime": 1470051234
+  }
+]

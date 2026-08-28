@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ga-pipeline"
+version = "1.0.0"
+description = "ETL pipeline: Google Analytics assessment API -> BigQuery"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.33,<3",
+    "google-cloud-bigquery>=3.43,<4",
+    "typer>=0.15,<1",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic>=1.0,<2"]
+
+[project.scripts]
+ga-pipeline = "ga_pipeline.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9,<10",
+    "ruff>=0.13,<1",
+]
+airflow = ["apache-airflow~=2.10.5"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.setuptools]
+packages = ["ga_pipeline"]
+py-modules = ["data_pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

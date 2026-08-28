@@ -1,0 +1,22 @@
+# The Dockerfile copies only pyproject.toml, uv.lock, README.md,
+# data_pipeline.py and ga_pipeline/. Everything else is build-context noise.
+.git
+.idea
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+
+# Secrets: never in the build context
+.env
+service-account*.json
+*service_account*.json
+
+# Not needed in the image
+docs
+sample_outputs
+scripts
+sql
+tests
+dags

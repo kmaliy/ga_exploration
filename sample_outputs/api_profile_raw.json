@@ -1,0 +1,713 @@
+{
+  "profile": {
+    "records_profiled": 600,
+    "dates": [
+      "20160801",
+      "20161123",
+      "20161128",
+      "20161225",
+      "20170315",
+      "20170716"
+    ],
+    "fields": {
+      "channelGrouping": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "Affiliates",
+          "Direct",
+          "Display",
+          "Organic Search",
+          "Paid Search",
+          "Referral",
+          "Social"
+        ],
+        "numeric_range": null
+      },
+      "customDimensions": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "list"
+        ],
+        "distinct_sample": [
+          "<list len=0>",
+          "<list len=1>"
+        ],
+        "numeric_range": null
+      },
+      "date": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "20160801",
+          "20161123",
+          "20161128",
+          "20161225",
+          "20170315",
+          "20170716"
+        ],
+        "numeric_range": null
+      },
+      "device": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "dict"
+        ],
+        "distinct_sample": [],
+        "numeric_range": null
+      },
+      "device.browser": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "Amazon Silk",
+          "Android Webview",
+          "Chrome",
+          "Edge",
+          "Firefox",
+          "Internet Explorer",
+          "Opera",
+          "Opera Mini",
+          "Safari",
+          "Safari (in-app)",
+          "UC Browser",
+          "YaBrowser"
+        ],
+        "numeric_range": null
+      },
+      "device.isMobile": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "bool"
+        ],
+        "distinct_sample": [
+          "False",
+          "True"
+        ],
+        "numeric_range": null
+      },
+      "device.operatingSystem": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(not set)",
+          "Android",
+          "Chrome OS",
+          "Linux",
+          "Macintosh",
+          "Windows",
+          "iOS"
+        ],
+        "numeric_range": null
+      },
+      "fullVisitorId": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "0403454456389348844",
+          "1644562297167206343",
+          "2090456244473009269",
+          "3065316533128123013",
+          "3616491314110893756",
+          "3634155159894530540",
+          "3746959242497212747",
+          "4760235141189252609",
+          "4908197409515839782",
+          "5761840295662617853",
+          "6211934679344931624",
+          "7007431728473096243",
+          "7154277987080329679",
+          "869096201147438807",
+          "9846623940035935960"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "dict"
+        ],
+        "distinct_sample": [],
+        "numeric_range": null
+      },
+      "geoNetwork.city": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(not set)",
+          "Bengaluru",
+          "Cebu City",
+          "Dubai",
+          "Hanoi",
+          "Hyderabad",
+          "Irvine",
+          "Montreal",
+          "New York",
+          "Quezon City",
+          "San Francisco",
+          "San Jose",
+          "Seattle",
+          "Sunnyvale",
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.cityId": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.continent": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "Africa",
+          "Americas",
+          "Asia",
+          "Europe",
+          "Oceania"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.country": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "Albania",
+          "Australia",
+          "Bulgaria",
+          "Canada",
+          "Cyprus",
+          "Hong Kong",
+          "India",
+          "Mongolia",
+          "Philippines",
+          "Singapore",
+          "South Korea",
+          "Taiwan",
+          "Turkey",
+          "Ukraine",
+          "United States"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.latitude": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.longitude": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.metro": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(not set)",
+          "Chicago IL",
+          "Dallas-Ft. Worth TX",
+          "Denver CO",
+          "JP_KANTO",
+          "Los Angeles CA",
+          "New York NY",
+          "San Antonio TX",
+          "San Francisco-Oakland-San Jose CA",
+          "Seattle-Tacoma WA",
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.networkDomain": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(not set)",
+          "111-tataidc.co.in",
+          "airtelbroadband.in",
+          "bigpond.net.au",
+          "com",
+          "cox.net",
+          "hinet.net",
+          "iprimus.net.au",
+          "mindspring.com",
+          "primus.ca",
+          "qwest.net",
+          "shawcable.net",
+          "ttnet.com.tr",
+          "unknown.unknown",
+          "verizon.net"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.networkLocation": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.region": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(not set)",
+          "Bangkok",
+          "California",
+          "Central Visayas",
+          "Delhi",
+          "Dubai",
+          "Hanoi",
+          "Illinois",
+          "Karnataka",
+          "Metro Manila",
+          "New York",
+          "Quebec",
+          "Telangana",
+          "Washington",
+          "not available in demo dataset"
+        ],
+        "numeric_range": null
+      },
+      "geoNetwork.subContinent": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "Australasia",
+          "Caribbean",
+          "Central America",
+          "Eastern Asia",
+          "Eastern Europe",
+          "Northern Africa",
+          "Northern America",
+          "Northern Europe",
+          "South America",
+          "Southeast Asia",
+          "Southern Africa",
+          "Southern Asia",
+          "Southern Europe",
+          "Western Asia",
+          "Western Europe"
+        ],
+        "numeric_range": null
+      },
+      "hits_sample": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "list"
+        ],
+        "distinct_sample": [
+          "<list len=1>",
+          "<list len=2>",
+          "<list len=3>"
+        ],
+        "numeric_range": null
+      },
+      "totals": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "dict"
+        ],
+        "distinct_sample": [],
+        "numeric_range": null
+      },
+      "totals.bounces": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 51.2,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1"
+        ],
+        "numeric_range": [
+          1,
+          1
+        ]
+      },
+      "totals.hits": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1",
+          "10",
+          "16",
+          "2",
+          "23",
+          "26",
+          "3",
+          "34",
+          "4",
+          "5",
+          "6",
+          "67",
+          "7",
+          "8",
+          "9"
+        ],
+        "numeric_range": [
+          1,
+          67
+        ]
+      },
+      "totals.newVisits": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 18.2,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1"
+        ],
+        "numeric_range": [
+          1,
+          1
+        ]
+      },
+      "totals.pageviews": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1",
+          "11",
+          "12",
+          "14",
+          "15",
+          "17",
+          "18",
+          "2",
+          "3",
+          "4",
+          "42",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "numeric_range": [
+          1,
+          46
+        ]
+      },
+      "totals.visits": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1"
+        ],
+        "numeric_range": [
+          1,
+          1
+        ]
+      },
+      "trafficSource": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "dict"
+        ],
+        "distinct_sample": [],
+        "numeric_range": null
+      },
+      "trafficSource.adContent": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 99.3,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "20% discount",
+          "Display Ad created 3/11/14",
+          "Display Ad created 3/11/15"
+        ],
+        "numeric_range": null
+      },
+      "trafficSource.keyword": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 71.8,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(Remarketing/Content targeting)",
+          "(not provided)",
+          "1X4Me6ZKNV0zg-jV",
+          "6qEhsCssdK0z36ri",
+          "category_l1==*",
+          "google merchandise store"
+        ],
+        "numeric_range": null
+      },
+      "trafficSource.medium": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(none)",
+          "affiliate",
+          "cpc",
+          "cpm",
+          "organic",
+          "referral"
+        ],
+        "numeric_range": null
+      },
+      "trafficSource.referralPath": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 53.3,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "/",
+          "/2015/03/11/google-merch-store-new-url/",
+          "/YKEI_mrn/items/c10b14f9a69ff71b1b7a",
+          "/analytics/web/",
+          "/permissions/using-the-logo.html",
+          "/yt/about/",
+          "/yt/about/en-GB/",
+          "/yt/about/fr/",
+          "/yt/about/hi/",
+          "/yt/about/pt-BR/",
+          "/yt/about/ro/",
+          "/yt/about/th/",
+          "/yt/about/tr/",
+          "/yt/about/vi/",
+          "/yt/about/zh-TW/"
+        ],
+        "numeric_range": null
+      },
+      "trafficSource.source": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "str"
+        ],
+        "distinct_sample": [
+          "(direct)",
+          "Partners",
+          "analytics.google.com",
+          "baidu",
+          "bing",
+          "dfa",
+          "facebook.com",
+          "google",
+          "google.com",
+          "m.sogou.com",
+          "phandroid.com",
+          "qiita.com",
+          "siliconvalley.about.com",
+          "yahoo",
+          "youtube.com"
+        ],
+        "numeric_range": null
+      },
+      "visitId": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1470119319",
+          "1470119916",
+          "1470119943",
+          "1470119954",
+          "1470120003",
+          "1470120268",
+          "1470120649",
+          "1470120677",
+          "1470120798",
+          "1470120817",
+          "1470120895",
+          "1470120908",
+          "1470120951",
+          "1470121084",
+          "1470121149"
+        ],
+        "numeric_range": [
+          1470114566,
+          1500274756
+        ]
+      },
+      "visitNumber": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1",
+          "10",
+          "11",
+          "15",
+          "17",
+          "19",
+          "2",
+          "3",
+          "4",
+          "5",
+          "52",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "numeric_range": [
+          1,
+          52
+        ]
+      },
+      "visitStartTime": {
+        "present_pct": 100.0,
+        "null_pct_when_present": 0.0,
+        "types": [
+          "int"
+        ],
+        "distinct_sample": [
+          "1470119319",
+          "1470119916",
+          "1470119943",
+          "1470119954",
+          "1470120003",
+          "1470120268",
+          "1470120649",
+          "1470120677",
+          "1470120798",
+          "1470120817",
+          "1470120895",
+          "1470120908",
+          "1470120951",
+          "1470121084",
+          "1470121149"
+        ],
+        "numeric_range": [
+          1470114566,
+          1500274756
+        ]
+      }
+    },
+    "transaction_examples": []
+  },
+  "limits": {
+    "limit=5000": {
+      "status": 200,
+      "seconds": 3.27,
+      "records_returned": 500,
+      "pagination": {
+        "has_next": true,
+        "has_previous": false,
+        "limit": 500,
+        "page": 1,
+        "total_pages": 6,
+        "total_records": 2556
+      }
+    },
+    "limit=0": {
+      "status": 400,
+      "seconds": 0.15,
+      "records_returned": null,
+      "pagination": null
+    }
+  },
+  "stability": {
+    "same_query_identical_order": true,
+    "page1_page2_overlap": [],
+    "page1_ids": [
+      1501657193,
+      1501657190,
+      1501657186,
+      1501657166,
+      1501657161
+    ]
+  },
+  "ratelimit": {
+    "burst_size": 20,
+    "status_counts": {
+      "200": 20
+    },
+    "saw_429": false,
+    "retry_after_header_seen": false,
+    "latency_seconds": {
+      "min": 2.28,
+      "median": 2.87,
+      "max": 3.82
+    }
+  }
+}
