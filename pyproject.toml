@@ -44,6 +44,9 @@ py-modules = ["data_pipeline"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "dag: requires the optional Airflow install (uv sync --group airflow)",
+]
 
 # --------------------------------------------------------------------------- #
 # ruff  (was ruff.toml; folded in so all tool config lives in one file)

@@ -4,6 +4,8 @@ from datetime import timedelta
 
 import pytest
 
+pytestmark = pytest.mark.dag
+
 airflow = pytest.importorskip("airflow")
 
 from airflow.models import DagBag  # noqa: E402
