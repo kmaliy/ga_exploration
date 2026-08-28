@@ -1,4 +1,4 @@
-"""Step 5 (bonus): LLM-assisted traffic summary.
+"""LLM-assisted traffic summary.
 
 Sends only aggregates to the LLM, never row-level data or identifiers.
 Without ``ANTHROPIC_API_KEY`` a plain rule-based summary is returned instead,

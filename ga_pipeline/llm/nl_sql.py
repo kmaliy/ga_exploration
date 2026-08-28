@@ -1,4 +1,4 @@
-"""Natural-language questions over the loaded tables (Step 5 bonus, NL->SQL).
+"""Natural-language questions over the loaded tables (NL->SQL).
 
 The LLM writes BigQuery SQL; it is never trusted. Every generated statement
 must pass deterministic guardrails before it touches data:

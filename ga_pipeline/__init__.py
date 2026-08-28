@@ -6,7 +6,7 @@ Layout follows the pipeline stages:
 * :mod:`ga_pipeline.transform` — raw records to destination row shapes
 * :mod:`ga_pipeline.quality` — pre- and post-load data quality gates
 * :mod:`ga_pipeline.load` — BigQuery table specs and the loader
-* :mod:`ga_pipeline.llm` — optional Step 5 features (``[llm]`` extra)
+* :mod:`ga_pipeline.llm` — optional features behind the ``[llm]`` extra
 * :mod:`ga_pipeline.sql` — reference DDL and reconciliation SQL
 
 with :mod:`~ga_pipeline.pipeline` orchestrating them, :mod:`~ga_pipeline.cli`

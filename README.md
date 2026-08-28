@@ -1,9 +1,9 @@
 # GA Exploration: API to BigQuery ETL
 
-ETL pipeline for the assessment API: extracts `/daily-visits` (flat) and
-`/ga-sessions-data` (nested), flattens sessions, and loads both into
-partitioned, clustered BigQuery tables — idempotently, with retries, explicit
-data-quality gates and tests.
+Pulls `/daily-visits` (flat) and `/ga-sessions-data` (nested) from the analytics
+API, flattens sessions, and loads both into partitioned, clustered BigQuery
+tables. Loads are idempotent, quality-gated, and configured entirely from
+environment variables.
 
 ```mermaid
 flowchart LR
@@ -42,89 +42,61 @@ flowchart LR
     T1 --> R
 ```
 
-__Both loads are idempotent, so any date can be rerun. `--dry-run` stops after
-the pre-load checks and writes JSONL to `artifacts/samples/` instead of
-loading. Details in [`docs/02-pipeline-design.md`](docs/02-pipeline-design.md).__
+Any date can be rerun. `--dry-run` stops after the pre-load checks and writes
+JSONL to `artifacts/samples/` instead of loading.
 
 ## Quickstart
 
-1. bootstrap: uv sync, .env, lint + tests
-2. load your credentials
-3. dry run of the pipeline
-4. run of the pipeline to ingest to BigQuery
-
 ```bash
-./scripts/setup.sh
-set -a; source .env; set +a
+./scripts/setup.sh                                    # uv sync, .env, lint, tests
+set -a; source .env; set +a                           # load credentials
 
 uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
 uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-07
 ```
 
-Full setup, secrets policy and test commands: [`docs/00-setup.md`](docs/00-setup.md).
-
-## The five assessment steps
-
-| Step | What | Design doc | Code | Tests |
-|---|---|---|---|---|
-| 1 | API exploration | [`docs/01-api-exploration.md`](docs/01-api-exploration.md) | `scripts/explore_api.sh`, `scripts/profile_api.py` | — (evidence in `artifacts/reports/`) |
-| 2 | The pipeline | [`docs/02-pipeline-design.md`](docs/02-pipeline-design.md) | `data_pipeline.py` → `ga_pipeline/` | `tests/unit/`, `tests/integration/` |
-| 3 | Airflow | [`docs/03-airflow.md`](docs/03-airflow.md) | `dags/etl_google_analytics_dag.py` | `tests/dag/` |
-| 4 | Docker | [`docs/04-docker.md`](docs/04-docker.md) | `Dockerfile` | — |
-| 5 | LLM integration (bonus) | [`docs/05-llm-features.md`](docs/05-llm-features.md) | `ga_pipeline/llm/` | `tests/unit/test_llm_*.py`, `tests/unit/test_nl_sql.py` |
-
-## Repository layout
+## Layout
 
 ```
 data_pipeline.py            CLI entry point
-pyproject.toml / uv.lock    uv-managed dependencies; the lock pins exact versions
-Dockerfile                  container image
-
-ga_pipeline/                the implementation, grouped by pipeline stage
+ga_pipeline/                grouped by pipeline stage
 ├── cli.py                  Typer interface
-├── pipeline.py             orchestration: the spine
-├── config.py               environment-only settings
-├── exceptions.py           error taxonomy (transient vs fatal)
-├── extract/                assessment API client
-├── transform/              raw records -> destination row shapes
-├── quality/                pre- and post-load data-quality gates
-├── load/                   BigQuery table specs and the loader
-├── llm/                    Step 5, optional; behind the `llm` extra
-└── sql/                    reference DDL + reconciliation query (packaged)
-
+├── pipeline.py             orchestration
+├── config.py               settings, read from the environment
+├── exceptions.py           transient vs fatal
+├── extract/                API client
+├── transform/              API records -> table rows
+├── quality/                pre- and post-load checks
+├── load/                   table specs and the BigQuery loader
+├── llm/                    optional, behind the `llm` extra
+└── sql/                    reference DDL and reconciliation query
 dags/                       Airflow DAG
-docs/                       design docs, one per step
 scripts/                    bootstrap and API exploration probes
-tests/                      unit / integration / dag  (see tests/README.md)
-artifacts/
-├── reports/                committed Step 1 evidence
-└── samples/                dry-run JSONL output (gitignored)
+tests/                      unit / integration / dag
+artifacts/reports/          API exploration evidence (committed)
+artifacts/samples/          dry-run output (gitignored)
 ```
 
-The package is laid out by **pipeline stage**, so the directory listing doubles
-as the architecture diagram. `config` and `exceptions` stay at the top level
-because every layer imports them. `ga_pipeline/llm/` maps one-to-one to the
-optional `llm` extra and to Step 5 — delete the directory and the core pipeline
-still runs.
+Stages are directories, so the listing shows the shape of the pipeline.
+`config` and `exceptions` sit at the top because every layer imports them.
+Deleting `llm/` leaves a working pipeline.
 
-## Secrets
+## Docs
 
-Everything sensitive comes from environment variables; nothing secret is in git
-or in the image. See [`docs/00-setup.md`](docs/00-setup.md#secrets-policy). The
-key printed in the assessment PDF should be treated as compromised and rotated.
+| | |
+|---|---|
+| [setup.md](docs/setup.md) | install, configure, test, run in Docker |
+| [api.md](docs/api.md) | what the API actually does, and what that changed |
+| [pipeline.md](docs/pipeline.md) | idempotency, partitioning, quality gates, retries |
+| [airflow.md](docs/airflow.md) | schedule, alerting, PII |
+| [llm.md](docs/llm.md) | optional summary, triage and NL→SQL features |
 
-## Known limitations / next steps
+## Known gaps
 
-* The schema was validated against live responses (see
-  [`docs/01-api-exploration.md`](docs/01-api-exploration.md)); the drift gate
-  turns any future contract change into an explicit error rather than silent
-  NULLs.
-* The API exposes only a truncated `hits_sample`, so no hit-level data is loaded
-  (`totals_hits` carries the true count). A hit-level fact table — partitioned
-  by date, clustered by session key — is the natural next model if the API ever
-  serves complete hits.
-* `device_category` is derived from `isMobile` when the API omits it; tablets
-  are indistinguishable from phones in that fallback.
-* The alerting callback logs a redacted, playbook-based triage message (with an
-  LLM narrative when configured) but ships without a delivery channel; wire the
-  Slack/PagerDuty webhook in `_notify_failure` for production.
+* The API returns a truncated `hits_sample`, so no hit-level data is loaded.
+  `totals_hits` carries the real count. A hit-level table would be the next
+  model if the API ever serves complete hits.
+* `device_category` is derived from `isMobile` when the API omits it, so
+  tablets read as phones.
+* The failure callback logs a redacted triage message but has no delivery
+  channel. Wire a Slack or PagerDuty webhook into `_notify_failure`.

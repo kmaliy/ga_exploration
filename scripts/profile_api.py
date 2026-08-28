@@ -9,7 +9,10 @@ Sections (pick with --sections, comma-separated, default all):
     profile     field presence, null rates and value ranges across sample
                 days; also looks for records with transactions
     sweep       record count for every day in the range, compared against
-                /daily-visits (slow, ~366 requests)
+                /daily-visits by GA shard date (slow, ~366 requests). Shard
+                date is the property's local day and /daily-visits counts by
+                UTC date, so the drift this reports is the timezone offset
+                between the endpoints, not a load-correctness measure
     limits      what happens at limit=5000 and limit=0
     stability   same query twice (is ordering stable?) and page 1 vs page 2
     ratelimit   burst of requests: any 429s, Retry-After header, latency
@@ -182,7 +185,10 @@ def run_sweep(api: Api, start: date, end: date, pause: float) -> dict[str, Any]:
             "min_pct": min(drifts) if drifts else None,
             "max_pct": max(drifts) if drifts else None,
             "mean_pct": round(statistics.fmean(drifts), 2) if drifts else None,
-            "days_over_5pct": [d for d in per_day if (d["drift_pct"] or 0) > 5],
+            # Shard-date drift, not the pipeline's reconciliation drift: this
+            # compares two different calendar days. 5% is a reporting cut-off
+            # for this report only.
+            "days_over_5pct_shard_drift": [d for d in per_day if (d["drift_pct"] or 0) > 5],
         },
         "volume": {
             "min_sessions_day": min(per_day, key=lambda d: d["sessions"] or 0, default=None),
@@ -303,11 +309,19 @@ def write_report(results: dict[str, Any], out_dir: Path) -> Path:
     if sweep:
         ds = sweep["drift_stats"]
         lines += [
-            "## Daily sweep and reconciliation",
+            "## Daily sweep: sessions by shard date vs /daily-visits",
+            "Sessions are counted by GA's shard `date` (the property's local day, UTC-7) "
+            "and compared against `/daily-visits`, which counts by UTC date. These are "
+            "different calendar days, so the drift below measures the timezone offset "
+            "between the endpoints — it is the signal that revealed the offset, not a "
+            "measure of whether a load was complete. The pipeline reconciles on "
+            "`DATE(visit_start_time)` instead, where the expected drift is zero.",
+            "",
             f"Swept {sweep['days_swept']} days; failures: {sweep['failures'] or 'none'}; "
             f"empty days: {sweep['empty_days'] or 'none'}.",
-            f"Drift vs daily-visits: min {ds['min_pct']}%, mean {ds['mean_pct']}%, max {ds['max_pct']}%.",
-            f"Days over the 5% tolerance: {ds['days_over_5pct'] or 'none'}.",
+            f"Shard-date drift vs daily-visits: min {ds['min_pct']}%, mean {ds['mean_pct']}%, "
+            f"max {ds['max_pct']}%.",
+            f"Days where shard-date drift exceeds 5%: {ds['days_over_5pct_shard_drift'] or 'none'}.",
             f"Volume: min day {sweep['volume']['min_sessions_day']}, "
             f"max day {sweep['volume']['max_sessions_day']}.",
             "",

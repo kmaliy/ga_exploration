@@ -1,4 +1,4 @@
-"""Shared Anthropic client wrapper for the Step 5 bonus features.
+"""Shared Anthropic client wrapper for the optional LLM features.
 
 One place owns how the pipeline talks to the LLM: the key and model come
 from environment variables, and calls are time-boxed with bounded retries,

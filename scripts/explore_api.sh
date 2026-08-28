@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Step 1: probe both endpoints and log every response with its status code.
+# Probe both endpoints and log every response with its status code.
 # Usage:
 #   export GA_API_KEY=...
 #   ./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
@@ -71,4 +71,4 @@ curl -sS -G -w '\n[http_status=%{http_code} time=%{time_total}s]\n' \
   "${BASE_URL}/daily-visits" || true
 echo
 
-echo "Done. Findings are documented in docs/01-api-exploration.md."
+echo "Done. Findings are documented in docs/api.md."

@@ -1,4 +1,4 @@
-"""Airflow DAG for the GA assessment ETL (Step 3 deliverable).
+"""Airflow DAG for the GA ETL.
 
 Requirements implemented
 ------------------------
@@ -22,7 +22,7 @@ Design notes
   cross-endpoint mismatch never blocks either load from landing and is
   reported as its own failure.
 
-See docs/03-airflow.md for metrics, failure behaviour, alerting, and PII handling.
+See docs/airflow.md for metrics, failure behaviour, alerting, and PII handling.
 """
 
 import logging
@@ -63,10 +63,10 @@ DEFAULT_ARGS = {
 
 
 def _notify_failure(context: dict) -> None:
-    """Failure hook: deterministic alert plus optional LLM triage (Step 5).
+    """Failure hook: deterministic alert plus optional LLM triage.
 
     Keep payloads out of the message: task metadata and a *redacted* error
-    only, no row data (PII hygiene, see docs/03-airflow.md). ``triage_failure``
+    only, no row data (PII hygiene, see docs/airflow.md). ``triage_failure``
     redacts secrets/PII-shaped strings before logging or any LLM call, maps
     the pipeline's exception taxonomy to a first response, and never raises;
     without ``ANTHROPIC_API_KEY`` the deterministic message is the alert.

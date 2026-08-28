@@ -1,4 +1,4 @@
-"""LLM-assisted failure triage for alerting (Step 5 bonus, wired into Step 3).
+"""LLM-assisted failure triage, wired into the DAG's failure callback.
 
 Called from the Airflow ``on_failure_callback`` after retries are exhausted.
 The trust-sensitive work stays deterministic: secrets and PII-shaped strings
@@ -37,7 +37,7 @@ _REDACTIONS: list[tuple[re.Pattern[str], str]] = [
     ),
 ]
 
-# First response per exception class (see ga_pipeline.exceptions and docs/03-airflow.md).
+# First response per exception class (see ga_pipeline.exceptions and docs/airflow.md).
 _PLAYBOOK: dict[str, str] = {
     "ConfigError": (
         "Missing or invalid environment configuration; retries will not help. "

@@ -95,7 +95,7 @@ cat <<'EOF'
 
      uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01
 
-4. Explore the API / regenerate Step 1 results:
+4. Explore the API / regenerate the exploration reports:
 
      ./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
      uv run python scripts/profile_api.py --sections profile,limits,stability,ratelimit

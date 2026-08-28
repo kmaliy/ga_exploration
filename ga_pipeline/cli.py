@@ -13,11 +13,11 @@ Dry-run (no BigQuery; writes JSONL to artifacts/samples/)::
 
     python data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
 
-Step 5 LLM summary of what's loaded::
+LLM summary of what's loaded::
 
     python data_pipeline.py summarize --start-date 2016-08-01 --end-date 2016-08-31
 
-Step 5 NL->SQL question over the loaded tables (guardrailed)::
+NL->SQL question over the loaded tables (guardrailed)::
 
     python data_pipeline.py ask "Which device had the highest bounce rate in August 2016?"
 """
@@ -102,7 +102,7 @@ def summarize(
     start_date: StartDate,
     end_date: EndDate,
 ) -> None:
-    """Step 5: LLM narrative over loaded aggregates (rule-based without an API key)."""
+    """LLM narrative over loaded aggregates (rule-based without an API key)."""
     from ga_pipeline.llm.summary import summarize_range
 
     with _PipelineErrorsAsExitCode():
@@ -117,7 +117,7 @@ def ask(
         int, typer.Option(help="Refuse generated SQL estimated to scan more than this many MB.")
     ] = 100,
 ) -> None:
-    """Step 5: NL->SQL with guardrails (read-only, partition-filtered, cost-capped)."""
+    """NL->SQL with guardrails (read-only, partition-filtered, cost-capped)."""
     from ga_pipeline.llm.nl_sql import ask as ask_question
 
     with _PipelineErrorsAsExitCode():
