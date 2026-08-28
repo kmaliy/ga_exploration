@@ -4,7 +4,7 @@
 --
 -- ${BQ_PROJECT} / ${BQ_DATASET} are placeholders matching the environment
 -- variables in .env.example — substitute before running by hand, e.g.:
---   envsubst < sql/ddl.sql | bq query --use_legacy_sql=false
+--   envsubst < ga_pipeline/sql/ddl.sql | bq query --use_legacy_sql=false
 
 CREATE TABLE IF NOT EXISTS `${BQ_PROJECT}.${BQ_DATASET}.daily_visits` (
   visit_date DATE   NOT NULL OPTIONS (description = 'Calendar date of the visits total'),

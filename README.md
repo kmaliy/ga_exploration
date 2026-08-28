@@ -22,7 +22,7 @@ data-quality gates, and secrets kept strictly in environment variables.
 | `ga_pipeline/` | Implementation package: `api_client`, `transform`, `bq_loader`, `quality`, `pipeline`, `llm_client`, `llm_summary`, `llm_triage`, `nl_sql`, `config`, `schemas`, `exceptions` |
 | `dags/etl_google_analytics_dag.py` | Airflow DAG (Step 3); docs in `docs/DAG.md` |
 | `Dockerfile` | Container image (Step 4), example `docker run` inside |
-| `sql/ddl.sql` | Destination DDL documenting partitioning/clustering intent |
+| `ga_pipeline/sql/ddl.sql` | Destination DDL documenting partitioning/clustering intent |
 | `scripts/explore_api.sh`, `scripts/profile_api.py` | Step 1 exploration probes + deep profiler |
 | `docs/API_EXPLORATION.md` | Step 1 findings (evidence → pipeline decisions) |
 | `artifacts/` | Step 1 evidence (reports/) and dry-run output (samples/) |
@@ -110,7 +110,7 @@ uv run data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-
 the dependencies installed.)
 
 The pipeline creates the dataset and tables automatically (idempotently);
-`sql/ddl.sql` documents the exact definitions.
+`ga_pipeline/sql/ddl.sql` documents the exact definitions.
 
 ### Idempotency & duplicate strategy
 

@@ -36,6 +36,11 @@ include = ["ga_pipeline*"]
 [tool.setuptools]
 py-modules = ["data_pipeline"]
 
+[tool.setuptools.package-data]
+# Reference SQL ships with the package so importlib.resources can find it
+# inside a wheel or container image.
+"ga_pipeline.sql" = ["*.sql"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

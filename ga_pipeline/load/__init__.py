@@ -2,7 +2,8 @@
 
 ``schemas`` lives here rather than at package top level because the table
 specs exist to drive table creation and load jobs — this is their only
-consumer.
+consumer. The reference DDL in ``ga_pipeline/sql/ddl.sql`` documents the same
+shape for reviewers.
 """
 
 from ga_pipeline.load.bq_loader import BigQueryLoader

@@ -7,7 +7,7 @@
 -- Both sides are filtered on their partition columns (visit_date / session_date)
 -- so this prunes partitions instead of scanning the table.
 --
--- Substitute the project/dataset, or run through: envsubst < sql/reconciliation.sql
+-- Substitute the project/dataset, or run through: envsubst < ga_pipeline/sql/reconciliation.sql
 
 DECLARE start_date DATE DEFAULT '2016-08-01';
 DECLARE end_date   DATE DEFAULT '2016-08-07';
