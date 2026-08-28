@@ -6,8 +6,6 @@ the expected key set before transformation, so a contract change raises an
 error instead of quietly loading NULL columns.
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import datetime
 from typing import Any

@@ -7,8 +7,6 @@ Python (day-over-day change against a threshold); the LLM only writes the
 narrative around it.
 """
 
-from __future__ import annotations
-
 import itertools
 import json
 import logging

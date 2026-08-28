@@ -14,8 +14,6 @@ transformed rows to local files instead of BigQuery. Useful for testing and
 for producing sample outputs without cloud access.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 from collections.abc import Iterator

@@ -13,8 +13,6 @@ Partitioning / clustering intent
   (partition expiry, per-date reloads) works uniformly across both tables.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 
 from google.cloud import bigquery

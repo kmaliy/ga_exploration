@@ -22,8 +22,6 @@ Usage:
 Output: artifacts/reports/api_profile_report.md and api_profile_raw.json.
 """
 
-from __future__ import annotations
-
 import json
 import os
 import statistics

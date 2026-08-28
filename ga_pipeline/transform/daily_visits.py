@@ -3,8 +3,6 @@
 Pure functions (dict in, dict out), unit-testable without network access.
 """
 
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Any
 

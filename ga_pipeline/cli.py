@@ -22,8 +22,6 @@ Step 5 NL->SQL question over the loaded tables (guardrailed)::
     python data_pipeline.py ask "Which device had the highest bounce rate in August 2016?"
 """
 
-from __future__ import annotations
-
 import json
 import logging
 from datetime import datetime

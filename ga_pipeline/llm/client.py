@@ -8,8 +8,6 @@ means — "fall back to a deterministic answer" (summary, triage) or "refuse"
 (NL->SQL, where there is nothing safe to fall back to).
 """
 
-from __future__ import annotations
-
 import logging
 import os
 

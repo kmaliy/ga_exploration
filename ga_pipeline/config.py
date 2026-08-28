@@ -4,11 +4,10 @@ Secrets are read from environment variables only, never hardcoded and never
 committed. Missing variables are reported all at once.
 """
 
-from __future__ import annotations
-
 import os
 from dataclasses import dataclass
 from datetime import date
+from typing import Self
 
 from ga_pipeline.exceptions import ConfigError
 
@@ -32,7 +31,7 @@ class ApiSettings:
     backoff_factor: float = 1.0
 
     @classmethod
-    def from_env(cls) -> ApiSettings:
+    def from_env(cls) -> Self:
         """Build settings from environment variables; fail fast if any are missing."""
         missing = _missing(["GA_API_KEY"])
         if missing:
@@ -52,7 +51,7 @@ class BigQuerySettings:
     location: str
 
     @classmethod
-    def from_env(cls) -> BigQuerySettings:
+    def from_env(cls) -> Self:
         """Build settings from environment variables; fail fast if any are missing."""
         missing = _missing(["BQ_PROJECT"])
         if missing:

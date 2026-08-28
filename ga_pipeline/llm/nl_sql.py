@@ -21,8 +21,6 @@ triage features there is no fallback here: without a working LLM this command
 refuses instead of guessing.
 """
 
-from __future__ import annotations
-
 import logging
 import re
 from dataclasses import dataclass

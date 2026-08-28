@@ -11,8 +11,6 @@ Transient BigQuery errors (429/5xx) are retried with exponential backoff;
 everything else fails fast as ``LoadError``.
 """
 
-from __future__ import annotations
-
 import logging
 import time
 import uuid

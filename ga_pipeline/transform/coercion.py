@@ -8,8 +8,6 @@ Nothing here knows about GA sessions or daily visits — it is the generic layer
 that ``sessions.py`` and ``daily_visits.py`` are written on top of.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, date, datetime
 from typing import Any
 

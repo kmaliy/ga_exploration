@@ -7,8 +7,6 @@ The client only fetches raw records; flattening and typing happen in
 transform.py.
 """
 
-from __future__ import annotations
-
 import logging
 from collections.abc import Iterator
 from typing import Any

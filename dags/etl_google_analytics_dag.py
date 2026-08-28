@@ -25,8 +25,6 @@ Design notes
 See docs/DAG.md for metrics, failure behaviour, alerting, and PII handling.
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import date, timedelta
 from typing import Any

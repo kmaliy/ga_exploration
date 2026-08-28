@@ -10,8 +10,6 @@ the alert. ``triage_failure`` never raises — a broken alert enricher must
 not eat the alert itself.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 import re
