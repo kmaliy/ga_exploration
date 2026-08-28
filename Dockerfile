@@ -12,7 +12,7 @@
 #     run --start-date 2016-08-01 --end-date 2016-08-07
 #
 # Dry-run without any cloud credentials:
-#   docker run --rm -e GA_API_KEY=... -v "$PWD/out:/app/sample_outputs" \
+#   docker run --rm -e GA_API_KEY=... -v "$PWD/out:/app/artifacts/samples" \
 #     ga-pipeline:1.0.0 run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
 
 FROM python:3.11-slim
@@ -40,7 +40,7 @@ RUN uv sync --locked --no-dev --extra llm
 
 # Never run as root; writable dir only for dry-run output.
 RUN useradd --create-home --uid 10001 etl \
-    && mkdir -p /app/sample_outputs \
+    && mkdir -p /app/artifacts/samples \
     && chown -R etl:etl /app
 USER etl
 

@@ -15,7 +15,7 @@ service-account*.json
 
 # Not needed in the image
 docs
-sample_outputs
+artifacts
 scripts
 sql
 tests

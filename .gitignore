@@ -25,3 +25,6 @@ htmlcov/
 .idea/
 .vscode/
 .DS_Store
+
+# Generated pipeline output (evidence lives in artifacts/reports/)
+artifacts/samples/

@@ -97,6 +97,6 @@ cat <<'EOF'
 
 4. Explore the API / regenerate Step 1 results:
 
-     ./scripts/explore_api.sh | tee sample_outputs/api_exploration.log
+     ./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
      uv run python scripts/profile_api.py --sections profile,limits,stability,ratelimit
 EOF

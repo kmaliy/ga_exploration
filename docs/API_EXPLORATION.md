@@ -3,10 +3,10 @@
 Step 1 results. Two tools were used against the live API:
 
 - `scripts/explore_api.sh`: nine curl probes covering the contract, pagination
-  and error handling. Log: `sample_outputs/api_exploration.log`
+  and error handling. Log: `artifacts/reports/api_exploration.log`
 - `scripts/profile_api.py`: profiles 600 records across six days (including
   Black Friday and Christmas) and probes limits, ordering and rate limiting.
-  Report: `sample_outputs/api_profile_report.md`
+  Report: `artifacts/reports/api_profile_report.md`
 
 ## Endpoints at a glance
 

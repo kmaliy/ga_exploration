@@ -25,7 +25,7 @@ data-quality gates, and secrets kept strictly in environment variables.
 | `sql/ddl.sql` | Destination DDL documenting partitioning/clustering intent |
 | `scripts/explore_api.sh`, `scripts/profile_api.py` | Step 1 exploration probes + deep profiler |
 | `docs/API_EXPLORATION.md` | Step 1 findings (evidence → pipeline decisions) |
-| `sample_outputs/` | Flattened outputs from a dry-run |
+| `artifacts/` | Step 1 evidence (reports/) and dry-run output (samples/) |
 | `tests/` | Unit tests (fixtures, no network/cloud needed) + DAG contract tests |
 
 ## Setup
@@ -70,12 +70,12 @@ Running API exploration step:
 
 ```bash
 set -a; source .env; set +a
-mkdir -p sample_outputs
+mkdir -p artifacts/reports
 chmod +x scripts/explore_api.sh scripts/setup.sh
 ```
 
 ```bash
-./scripts/explore_api.sh | tee sample_outputs/api_exploration.log
+./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
 uv run python scripts/profile_api.py --sections profile,limits,stability,ratelimit
 ```
 

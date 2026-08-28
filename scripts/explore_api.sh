@@ -2,7 +2,7 @@
 # Step 1: probe both endpoints and log every response with its status code.
 # Usage:
 #   export GA_API_KEY=...
-#   ./scripts/explore_api.sh | tee sample_outputs/api_exploration.log
+#   ./scripts/explore_api.sh | tee artifacts/reports/api_exploration.log
 set -euo pipefail
 
 : "${GA_API_KEY:?Set GA_API_KEY in your environment first (see .env.example)}"

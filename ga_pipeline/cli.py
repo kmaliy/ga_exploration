@@ -9,7 +9,7 @@ Load one week of both endpoints into BigQuery::
 
     python data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-07
 
-Dry-run (no BigQuery; writes JSONL to sample_outputs/)::
+Dry-run (no BigQuery; writes JSONL to artifacts/samples/)::
 
     python data_pipeline.py run --start-date 2016-08-01 --end-date 2016-08-01 --dry-run
 
@@ -80,7 +80,7 @@ def run(
     ] = False,
     output_dir: Annotated[
         Path | None,
-        typer.Option(help="Target directory for --dry-run output (default: sample_outputs/)."),
+        typer.Option(help="Target directory for --dry-run output (default: artifacts/samples/)."),
     ] = None,
 ) -> None:
     """Extract, transform, quality-check, and load a date range."""

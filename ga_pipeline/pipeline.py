@@ -215,7 +215,7 @@ def _date_range(start: date, end: date) -> Iterator[date]:
 
 
 def _write_local(rows: list[dict[str, Any]], output_dir: Path | None, stem: str) -> None:
-    target_dir = output_dir or Path("sample_outputs")
+    target_dir = output_dir or Path("artifacts/samples")
     target_dir.mkdir(parents=True, exist_ok=True)
     path = target_dir / f"{stem}.jsonl"
     with path.open("w", encoding="utf-8") as handle:

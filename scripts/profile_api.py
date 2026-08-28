@@ -19,7 +19,7 @@ Usage:
     uv run python scripts/profile_api.py
     uv run python scripts/profile_api.py --sections profile,limits
 
-Output: sample_outputs/api_profile_report.md and api_profile_raw.json.
+Output: artifacts/reports/api_profile_report.md and api_profile_raw.json.
 """
 
 from __future__ import annotations
@@ -338,7 +338,7 @@ def main(
     sweep_start: Annotated[str, typer.Option(help="Sweep start (YYYY-MM-DD).")] = "2016-08-01",
     sweep_end: Annotated[str, typer.Option(help="Sweep end (YYYY-MM-DD).")] = "2017-08-01",
     pause: Annotated[float, typer.Option(help="Pause between calls in seconds.")] = 0.2,
-    out_dir: Annotated[Path, typer.Option(help="Report directory.")] = Path("sample_outputs"),
+    out_dir: Annotated[Path, typer.Option(help="Report directory.")] = Path("artifacts/reports"),
 ) -> None:
     """Run the selected probes and write a markdown + JSON report."""
     chosen = (
