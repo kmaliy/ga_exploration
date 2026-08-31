@@ -29,7 +29,7 @@ class TestFlattenSession:
         assert row["visit_id"] == 1470046245
         assert row["visit_number"] == 1
         assert row["totals_pageviews"] == 4
-        assert row["totals_time_on_site_seconds"] == 121
+        assert row["totals_time_on_site_seconds"] is None  # live API never sends timeOnSite
         assert row["device_category"] == "mobile"  # derived from isMobile (API omits it)
         assert row["device_is_mobile"] is True
         assert row["geo_country"] == "United Kingdom"
@@ -59,10 +59,11 @@ class TestFlattenSession:
             "date": "20160801",
             "fullVisitorId": "1",
             "visitId": 2,
-            "totals": {"transactions": 3, "transactionRevenue": 41990000},
+            "totals": {"timeOnSite": 121, "transactions": 3, "transactionRevenue": 41990000},
             "trafficSource": {"campaign": "Data Share Promo", "isTrueDirect": True},
         }
         row = transform.flatten_session(record, LOADED_AT)
+        assert row["totals_time_on_site_seconds"] == 121
         assert row["totals_transactions"] == 3
         assert row["totals_transaction_revenue_micros"] == 41990000
         assert row["traffic_campaign"] == "Data Share Promo"
