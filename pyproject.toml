@@ -16,6 +16,12 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = ["anthropic>=1.0,<2"]
+# Optional LLM tracing: sends prompts, responses, latency and token counts to a
+# Langfuse instance. Inert unless LANGFUSE_PUBLIC_KEY is set (see llm/client.py).
+tracing = [
+    "langfuse>=4,<5",
+    "opentelemetry-instrumentation-anthropic>=0.62,<1",
+]
 
 [project.scripts]
 ga-pipeline = "ga_pipeline.cli:main"

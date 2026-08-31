@@ -44,6 +44,21 @@ class TestValidateSql:
         out = nl_sql.validate_sql(GOOD_SQL + " LIMIT 10", ALLOWED, PARTITIONS)
         assert out.upper().count("LIMIT") == 1
 
+    @pytest.mark.parametrize(
+        "predicate",
+        [
+            "session_date BETWEEN '2016-08-01' AND '2016-08-07'",
+            "session_date >= '2016-08-01'",
+            "session_date = '2016-08-01'",
+            "session_date IN ('2016-08-01', '2016-08-02')",
+            "'2016-08-01' <= session_date",
+            "session_date NOT BETWEEN '2016-08-01' AND '2016-08-07'",
+        ],
+    )
+    def test_accepts_any_real_partition_predicate(self, predicate):
+        sql = f"SELECT geo_country FROM `p.d.ga_sessions_flat` WHERE {predicate}"
+        assert nl_sql.validate_sql(sql, ALLOWED, PARTITIONS).startswith("SELECT")
+
     def test_trailing_semicolon_tolerated(self):
         out = nl_sql.validate_sql(GOOD_SQL + ";", ALLOWED, PARTITIONS)
         assert ";" not in out
@@ -67,6 +82,21 @@ class TestValidateSql:
                 "information schema",
             ),
             ("SELECT visits FROM `p.d.daily_visits`", "no partition filter"),
+            (
+                # names the partition column but never constrains it: still a full scan
+                "SELECT session_date, COUNT(*) FROM `p.d.ga_sessions_flat` GROUP BY session_date",
+                "partition column mentioned, not filtered",
+            ),
+            (
+                "SELECT geo_country, session_date FROM `p.d.ga_sessions_flat` ORDER BY session_date",
+                "partition column only projected and ordered",
+            ),
+            (
+                # DATE_TRUNC on the partition column does not prune partitions
+                "SELECT COUNT(*) FROM `p.d.ga_sessions_flat` "
+                "WHERE DATE_TRUNC(session_date, MONTH) = '2016-08-01'",
+                "wrapped partition column does not prune",
+            ),
             ("SELECT visits FROM daily_visits WHERE visit_date = '2016-08-01'", "unbackticked table"),
         ],
     )

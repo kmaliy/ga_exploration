@@ -28,11 +28,18 @@ ANOMALY_THRESHOLD_PCT = 30.0  # day-over-day swing considered noteworthy
 def summarize_range(start_date: date, end_date: date, loader: BigQueryLoader | None = None) -> str:
     """Return a plain-language summary of the loaded data for a date range."""
     loader = loader or BigQueryLoader(BigQuerySettings.from_env())
-    aggregates = _collect_aggregates(loader, start_date, end_date)
-    anomalies = detect_anomalies(aggregates["daily"])
+    with llm_client.traced(
+        "summarize-traffic",
+        tags=["summarize"],
+        inputs={"start_date": str(start_date), "end_date": str(end_date)},
+    ) as trace:
+        aggregates = _collect_aggregates(loader, start_date, end_date)
+        anomalies = detect_anomalies(aggregates["daily"])
 
-    narrative = llm_client.try_complete(_prompt(start_date, end_date, aggregates, anomalies))
-    return narrative or _rule_based_summary(start_date, end_date, aggregates, anomalies)
+        narrative = llm_client.try_complete(_prompt(start_date, end_date, aggregates, anomalies))
+        summary = narrative or _rule_based_summary(start_date, end_date, aggregates, anomalies)
+        trace.output({"summary": summary, "llm_used": narrative is not None})
+        return summary
 
 
 # --------------------------------------------------------------------------- #

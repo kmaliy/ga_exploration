@@ -13,6 +13,9 @@ dist/
 *application_default_credentials.json
 credentials/*.json
 
+# Local Airflow home (db, logs, config)
+.airflow/
+
 # Tool caches
 .pytest_cache/
 .ruff_cache/

@@ -20,11 +20,9 @@
 -- prunes partitions instead of scanning the table.
 --
 -- Mirrors ga_pipeline/quality/checks.py::check_reconciliation.
--- Substitute the project/dataset, or run through:
---   envsubst < ga_pipeline/sql/reconciliation.sql
 
 DECLARE start_date DATE DEFAULT '2016-08-01';
-DECLARE end_date   DATE DEFAULT '2016-08-07';
+DECLARE end_date   DATE DEFAULT '2016-08-31';
 
 WITH daily AS (
   SELECT visit_date AS d, visits AS daily_visits
@@ -38,9 +36,7 @@ sessions AS (
     COUNT(*)                                  AS session_rows,
     COUNT(DISTINCT full_visitor_id)           AS visitors
   FROM `${BQ_PROJECT}.${BQ_DATASET}.ga_sessions_flat`
-  -- one day either side, because a UTC day draws on two local-day partitions
-  WHERE session_date BETWEEN DATE_SUB(start_date, INTERVAL 1 DAY)
-                         AND DATE_ADD(end_date, INTERVAL 1 DAY)
+  WHERE session_date BETWEEN DATE_SUB(start_date, INTERVAL 1 DAY) AND end_date
     AND DATE(visit_start_time) BETWEEN start_date AND end_date
   GROUP BY d
 )

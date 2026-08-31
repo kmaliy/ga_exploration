@@ -25,9 +25,8 @@ from ga_pipeline.transform import session_key
 
 logger = logging.getLogger(__name__)
 
-# Reconciliation compares like with like (see check_reconciliation), so the two
-# endpoints are expected to agree exactly and any drift is worth reporting.
-# Raise this only to absorb a known, explained discrepancy.
+# Two endpoints are expected to return same results.
+# Raise this only to reflect a known, explained discrepancy.
 RECONCILIATION_TOLERANCE_PCT = 0.0
 
 REQUIRED_SESSION_FIELDS = ("session_date", "full_visitor_id", "visit_id")
@@ -68,9 +67,7 @@ class QualityReport:
         logger.info("[DQ:%s] %d check(s) passed", self.context, self.checks_run)
 
 
-# --------------------------------------------------------------------------- #
-# Pre-load checks (in memory)
-# --------------------------------------------------------------------------- #
+# Preload checks (in memory)
 
 
 def check_sessions_pre_load(
@@ -110,9 +107,7 @@ def check_daily_visits_pre_load(
     return report
 
 
-# --------------------------------------------------------------------------- #
 # Post-load checks (SQL against BigQuery)
-# --------------------------------------------------------------------------- #
 
 
 def check_sessions_post_load(
@@ -259,11 +254,6 @@ def check_reconciliation(
             "is a genuine discrepancy — check for a missed page or a partial load"
         )
     return report
-
-
-# --------------------------------------------------------------------------- #
-# Shared primitives
-# --------------------------------------------------------------------------- #
 
 
 def _check_not_empty(report: QualityReport, rows: list[dict[str, Any]], what: str) -> None:

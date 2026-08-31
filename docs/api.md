@@ -23,7 +23,7 @@ uv run python scripts/profile_api.py --sections profile,limits,stability,ratelim
 | Shape | flat: `visit_date`, `total_visits` | nested, camelCase (GA export style) |
 | Date param | `start_date`/`end_date`, `YYYY-MM-DD` | `date`, `YYYYMMDD` |
 | Range | 2016-08-01 to 2017-08-02 (367 days) | 2016-08-01 to 2017-08-01 |
-| Filters | none | `country`, `device_category`, and `channel_grouping`, which is undocumented but works |
+| Filters | none | `country`, `device_category`, and `channel_grouping` |
 | Auth | `X-API-Key` header | `X-API-Key` header |
 
 Both proxy `bigquery-public-data.google_analytics_sample` — `metadata.dataset`
@@ -116,7 +116,7 @@ UTC-7. `/daily-visits` counts by UTC date. A session at 17:00 local on
 2016-08-01 is 00:00 UTC on 2016-08-02: Aug 1 in the session shard, Aug 2 in the
 daily total.
 
-The arithmetic is exact. Of the 1,711 sessions dated 2016-08-01, 415 start
+The calculation confirmed it. Of the 1,711 sessions dated 2016-08-01, 415 start
 after midnight UTC, and 1,711 − 415 = 1,296, which is `daily_visits` for that
 date.
 
@@ -137,7 +137,7 @@ Two consequences:
   drift is a real load problem rather than a definition mismatch. Compared by
   shard date it exceeded 5% on six of those seven days and meant nothing.
 
-## What this changed in the pipeline
+## How the API exploration findings affected pipeline
 
 1. Pagination stops on `has_next` rather than probing for an empty page.
 2. The daily-visits transform reads `visit_date`/`total_visits`. The spec's

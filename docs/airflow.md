@@ -16,18 +16,41 @@ signal and must not stop either load from landing.
 Contract tests live in `tests/dag/` and run against a real Airflow 2.10 install
 (`uv sync --group airflow`).
 
+Run airflow UI if needed
+
+```bash
+cd ~/personal_projects/ga_exploration
+uv sync --group airflow
+
+set -a; source .env; set +a
+
+export AIRFLOW_HOME="$PWD/.airflow"
+export AIRFLOW__CORE__DAGS_FOLDER="$PWD/dags"
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+uv run airflow standalone
+```
+
+user: admin
+password: saved to ./ga_exploration/.airflow/standalone_admin_password.txt
+
+![Screenshot 2026-08-30 at 23.02.27.png](../../../../../var/folders/7n/z7rjtn3d69x8z_d1lk0h3kr80000gp/T/TemporaryItems/NSIRD_screencaptureui_6IUfLf/Screenshot%202026-08-30%20at%2023.02.27.png)
+
 ## Schedule and windowing
 
-The brief gives 06:00 and 18:00 without a timezone; Berlin is the assumption,
+The task gives 06:00 and 18:00 without a timezone; Berlin is the assumption for the sake of this task,
 and `LOCAL_TZ` in the DAG changes it. Each run processes its own data interval,
 everything since the previous scheduled run, clamped to the dataset's range of
 2016-08-01 to 2017-08-01. Backfills with `catchup=True` are deterministic and
 out-of-range runs are no-ops.
 
-Reconciliation counts sessions by UTC date, so day D reads the D-1 and D
-session partitions. Within a run the loop loads D-1 first. On the first date of
-a backfill D-1 is absent, and the check reports that instead of reading it as
-drift.
+GA's day starts seven hours after UTC's, so the sessions from one UTC day sit
+in two partitions: the end of the previous day and most of the current one.
+Reconciliation reads both. Days load in order, so the previous one is already
+there. The first day of a backfill has no previous day loaded, so the count
+comes up short. The check notices that partition is empty and says so, instead
+of reporting a mismatch that looks like a broken load.
 
 ## Retries and timeouts
 

@@ -4,7 +4,10 @@ Three features, all optional, all behind the `llm` extra (`uv sync --extra
 llm`). They share one rule: the LLM is never load-bearing and never trusted.
 Calls go through [`ga_pipeline/llm/client.py`](../ga_pipeline/llm/client.py),
 which reads key and model from the environment and applies a 30s timeout and
-two retries. Every deterministic guarantee holds with the LLM absent, down or
+two retries. A personal or service-account key that is not scoped to a
+workspace must also say which workspace it acts in; set
+`ANTHROPIC_WORKSPACE_ID` and the client sends the header. Workspace-scoped keys
+need nothing. Every deterministic guarantee holds with the LLM absent, down or
 wrong.
 
 Nothing in the core ETL path imports `ga_pipeline/llm/` at module scope — the
@@ -50,3 +53,64 @@ The LLM writes the SQL; `nl_sql.py` decides whether it runs.
 
 Unlike the other two there is no fallback. Without a working LLM the command
 refuses rather than guessing.
+
+## Tracing (optional)
+
+Every LLM call goes through one function, so a single instrumentation hook
+covers all three features. With Langfuse configured you get the prompt, the
+response, latency and token counts for each call — useful mainly for seeing
+what SQL `ask` actually generated and why a guardrail refused it.
+
+Run Langfuse locally:
+
+```bash
+git clone --depth=1 https://github.com/langfuse/langfuse.git
+cd langfuse && docker compose up -d
+```
+
+Open http://localhost:3000, create an account and a project, then copy the two
+project keys into `.env`:
+
+```
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_BASE_URL=http://localhost:3000
+```
+
+Install the extra and run anything that calls the LLM:
+
+```bash
+uv sync --extra llm --extra tracing
+set -a; source .env; set +a
+uv run data_pipeline.py summarize --start-date 2016-08-01 --end-date 2016-08-07
+```
+
+Traces appear in the Langfuse UI. Stop it with `docker compose down` in the
+Langfuse directory.
+
+### What a trace looks like
+
+Each feature is one named trace, with the Anthropic call nested inside it:
+
+| Trace | Tag | Input | Output |
+|---|---|---|---|
+| `summarize-traffic` | `summarize` | the date range | the summary, and whether the LLM or the fallback produced it |
+| `answer-question` | `ask` | the question | the generated SQL, estimated bytes, row count |
+| `triage-failure` | `triage` | task ids and the **redacted** error | the alert text, and whether the LLM was used |
+
+Names are stable and verb-first so dashboards can filter on them, and inputs
+are set explicitly rather than inferred from the call — otherwise the loader,
+settings and API keys would land in the trace as function arguments. Outputs
+carry shapes, not payloads: `answer-question` records the row *count*, never
+the rows, since row values can identify visitors.
+
+Model name, token counts and latency come from the Anthropic instrumentor
+automatically, so cost is calculated for you.
+
+It is off by default and cannot break anything. `enable_tracing()` returns
+immediately unless `LANGFUSE_PUBLIC_KEY` is set, and a missing extra or an
+unreachable collector is logged and swallowed rather than raised — the same
+posture the LLM calls themselves take. Spans export in a background batch, so
+a dead collector costs no latency on the call. Each trace flushes on exit,
+which matters here: the CLI is a short-lived process, and without a flush the
+batch exporter would be killed before it ever shipped anything.

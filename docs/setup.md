@@ -28,6 +28,10 @@ The equivalent by hand:
 uv sync --extra llm && cp .env.example .env
 ```
 
+Optional extras: `--extra tracing` for Langfuse LLM tracing (see
+[llm.md](llm.md)), `--group airflow` for the DAG and its tests, or
+`--all-extras --all-groups` for everything.
+
 Then fill in `.env` and load it. A child process cannot export into your shell,
 so this part is manual:
 

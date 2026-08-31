@@ -69,6 +69,23 @@ _PLAYBOOK: dict[str, str] = {
 _DEFAULT_HINT = "No playbook match; read the task log."
 
 
+def playbook_hint(error: str) -> str:
+    """Map an error string to its first response.
+
+    Prefers the exception class name, which callers put first as
+    ``f"{type(exc).__name__}: {exc}"``. Falls back to scanning for a class name
+    anywhere in the text, longest first, so ``TransientLoadError`` can never be
+    shadowed by the shorter ``LoadError`` it contains.
+    """
+    head = error.split(":", 1)[0].strip()
+    if head in _PLAYBOOK:
+        return _PLAYBOOK[head]
+    for name in sorted(_PLAYBOOK, key=len, reverse=True):
+        if name in error:
+            return _PLAYBOOK[name]
+    return _DEFAULT_HINT
+
+
 def redact(text: str) -> str:
     """Strip secrets and PII-shaped strings from free text (deterministic)."""
     for pattern, replacement in _REDACTIONS:
@@ -92,7 +109,14 @@ def triage_failure(metadata: Mapping[str, Any], error: str, log_tail: str = "") 
         logger.warning("Failure triage itself failed: %s", exc)
         return f"ETL failure (triage unavailable): {dict(metadata)}"
     try:
-        narrative = llm_client.try_complete(_prompt(metadata, error_red, tail_red), max_tokens=300)
+        # inputs are the redacted error and task ids only, never the raw exception
+        with llm_client.traced(
+            "triage-failure",
+            tags=["triage"],
+            inputs={"task": dict(metadata), "error": error_red},
+        ) as trace:
+            narrative = llm_client.try_complete(_prompt(metadata, error_red, tail_red), max_tokens=300)
+            trace.output({"alert": base, "llm_used": narrative is not None})
     except Exception as exc:  # try_complete should not raise, but never trust that here
         logger.warning("LLM triage failed: %s", exc)
         narrative = None
@@ -104,7 +128,7 @@ def triage_failure(metadata: Mapping[str, Any], error: str, log_tail: str = "") 
 def _deterministic_triage(metadata: Mapping[str, Any], redacted_error: str) -> str:
     ids = " ".join(f"{key}={value}" for key, value in metadata.items())
     first_line = redacted_error.splitlines()[0] if redacted_error else "(no exception captured)"
-    hint = next((hint for name, hint in _PLAYBOOK.items() if name in redacted_error), _DEFAULT_HINT)
+    hint = playbook_hint(redacted_error)
     return f"ETL failure: {ids}\nError: {first_line}\nNext step: {hint}"
 
 

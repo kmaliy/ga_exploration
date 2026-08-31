@@ -40,6 +40,31 @@ class TestDeterministicFallback:
         assert "task log" in text
 
 
+class TestPlaybookLookup:
+    def test_transient_load_error_is_not_shadowed_by_load_error(self, monkeypatch):
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        text = llm_triage.triage_failure(META, "TransientLoadError: 503 from BigQuery")
+        assert "loads are idempotent" in text  # TransientLoadError hint
+        assert "check dataset/table permissions" not in text  # plain LoadError hint
+
+    def test_plain_load_error_still_matches_its_own_hint(self, monkeypatch):
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        text = llm_triage.triage_failure(META, "LoadError: schema mismatch")
+        assert "check dataset/table permissions" in text
+
+    def test_class_name_wins_over_a_mention_in_the_message(self):
+        """The leading class name decides, not whichever name appears anywhere.
+
+        A scan over the playbook would match ConfigError here and give the
+        wrong first response.
+        """
+        hint = llm_triage.playbook_hint("TransientLoadError: gave up, see ConfigError notes")
+        assert "loads are idempotent" in hint
+
+    def test_unrecognised_class_falls_back(self):
+        assert "task log" in llm_triage.playbook_hint("ZeroDivisionError: boom")
+
+
 class TestLlmPath:
     def test_llm_narrative_appended_and_labeled_advisory(self, monkeypatch):
         monkeypatch.setattr(

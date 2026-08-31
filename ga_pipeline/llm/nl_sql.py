@@ -6,9 +6,10 @@ must pass deterministic guardrails before it touches data:
 1. Read-only: one single SELECT/WITH statement, no DML/DDL keywords.
 2. Table allowlist: only the two destination tables — no other datasets,
    no ``INFORMATION_SCHEMA``.
-3. Partition discipline: the statement must reference the partition column
+3. Partition discipline: the statement must *filter* on a partition column
    (``session_date`` / ``visit_date``) — the same "never full-scan" rule the
-   rest of the project documents for dashboards.
+   rest of the project documents for dashboards. Mentioning the column in a
+   SELECT or GROUP BY is not enough; it has to appear in a comparison.
 4. Cost cap: a dry run estimates bytes scanned and the query is refused over
    the cap *before* execution; the real run additionally sets
    ``maximum_bytes_billed`` so BigQuery enforces the same limit server-side.
@@ -42,6 +43,23 @@ _FORBIDDEN_KEYWORDS = re.compile(
 )
 _BACKTICKED = re.compile(r"`([^`]+)`")
 _HAS_LIMIT = re.compile(r"(?i)\blimit\s+\d+\b")
+_COMPARISON = r"(?:=|!=|<>|<=|>=|<|>)"
+
+
+def _filters_on(sql: str, field: str) -> bool:
+    """True when ``field`` appears in a comparison, not merely mentioned.
+
+    ``SELECT session_date, COUNT(*) ... GROUP BY 1`` names the partition column
+    but still scans every partition, so naming it is not sufficient.
+    """
+    name = re.escape(field)
+    predicates = (
+        rf"\b{name}\b\s*{_COMPARISON}",  # session_date >= '2016-08-01'
+        rf"{_COMPARISON}\s*\b{name}\b",  # '2016-08-01' <= session_date
+        rf"\b{name}\b\s+(?:not\s+)?between\b",  # session_date BETWEEN a AND b
+        rf"\b{name}\b\s+(?:not\s+)?in\s*\(",  # session_date IN (...)
+    )
+    return any(re.search(pattern, sql, re.IGNORECASE) for pattern in predicates)
 
 
 @dataclass(frozen=True)
@@ -72,21 +90,24 @@ def ask(
     allowed_tables = {loader.table_id(spec.name) for spec in ALL_SPECS}
     partition_fields = {spec.partition_field for spec in ALL_SPECS}
 
-    raw = llm_client.try_complete(_prompt(question, loader), max_tokens=600)
-    if raw is None:
-        raise TransientApiError("LLM returned no SQL; retry, or check ANTHROPIC_API_KEY / network.")
-    sql = validate_sql(_extract_sql(raw), allowed_tables, partition_fields)
+    with llm_client.traced("answer-question", tags=["ask"], inputs={"question": question}) as trace:
+        raw = llm_client.try_complete(_prompt(question, loader), max_tokens=600)
+        if raw is None:
+            raise TransientApiError("LLM returned no SQL; retry, or check ANTHROPIC_API_KEY / network.")
+        sql = validate_sql(_extract_sql(raw), allowed_tables, partition_fields)
 
-    estimated = loader.dry_run_bytes(sql)
-    if estimated > max_scanned_bytes:
-        raise SqlGuardrailError(
-            f"Generated query would scan ~{estimated / 1e6:.0f} MB "
-            f"(cap {max_scanned_bytes / 1e6:.0f} MB); not executed. "
-            "Ask a narrower question (tighter date range) or raise --max-scanned-mb."
-        )
-    logger.info("NL->SQL estimated scan %.1f MB for question %r", estimated / 1e6, question)
-    rows = loader.query_rows(sql, maximum_bytes_billed=max_scanned_bytes)
-    return AskResult(question=question, sql=sql, estimated_bytes=estimated, rows=rows[:MAX_RESULT_ROWS])
+        estimated = loader.dry_run_bytes(sql)
+        if estimated > max_scanned_bytes:
+            raise SqlGuardrailError(
+                f"Generated query would scan ~{estimated / 1e6:.0f} MB "
+                f"(cap {max_scanned_bytes / 1e6:.0f} MB); not executed. "
+                "Ask a narrower question (tighter date range) or raise --max-scanned-mb."
+            )
+        logger.info("NL->SQL estimated scan %.1f MB for question %r", estimated / 1e6, question)
+        rows = loader.query_rows(sql, maximum_bytes_billed=max_scanned_bytes)
+        # row values may be identifying; the trace records the query and its shape only
+        trace.output({"sql": sql, "estimated_bytes": estimated, "rows_returned": len(rows)})
+        return AskResult(question=question, sql=sql, estimated_bytes=estimated, rows=rows[:MAX_RESULT_ROWS])
 
 
 def validate_sql(sql: str, allowed_tables: set[str], partition_fields: set[str]) -> str:
@@ -110,10 +131,11 @@ def validate_sql(sql: str, allowed_tables: set[str], partition_fields: set[str])
         raise SqlGuardrailError("Tables must be referenced by their full backticked ids.")
     if unknown := referenced - allowed_tables:
         raise SqlGuardrailError(f"Table(s) not on the allowlist: {sorted(unknown)}.")
-    if not any(re.search(rf"\b{re.escape(field)}\b", sql) for field in partition_fields):
+    if not any(_filters_on(sql, field) for field in partition_fields):
         raise SqlGuardrailError(
-            f"Query must filter a partition column ({', '.join(sorted(partition_fields))}); "
-            "full scans are refused."
+            f"Query must filter a partition column ({', '.join(sorted(partition_fields))}) "
+            "with a comparison, e.g. BETWEEN or >=; naming it in SELECT or GROUP BY still "
+            "scans every partition, so full scans are refused."
         )
     if not _HAS_LIMIT.search(sql):
         sql = f"{sql}\nLIMIT {MAX_RESULT_ROWS}"

@@ -34,10 +34,6 @@ class AssessmentApiClient:
         self._settings = settings
         self._session = session or self._build_session(settings)
 
-    # ------------------------------------------------------------------ #
-    # Public API
-    # ------------------------------------------------------------------ #
-
     def iter_daily_visits(self, start_date: str, end_date: str) -> Iterator[dict[str, Any]]:
         """Yield raw daily-visit records for ``start_date``..``end_date`` (YYYY-MM-DD)."""
         params = {"start_date": start_date, "end_date": end_date}
@@ -46,10 +42,6 @@ class AssessmentApiClient:
     def iter_ga_sessions(self, date: str) -> Iterator[dict[str, Any]]:
         """Yield raw GA session records for one ``date`` (YYYYMMDD)."""
         yield from self._iter_paginated(GA_SESSIONS_PATH, {"date": date})
-
-    # ------------------------------------------------------------------ #
-    # Internals
-    # ------------------------------------------------------------------ #
 
     def _iter_paginated(self, path: str, params: dict[str, Any]) -> Iterator[dict[str, Any]]:
         """Iterate pages using the API's pagination metadata.
