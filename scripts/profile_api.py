@@ -75,9 +75,6 @@ class Api:
         return response.status_code, body, elapsed, dict(response.headers)
 
 
-# ---- profile ----
-
-
 def run_profile(api: Api, pause: float) -> dict[str, Any]:
     stats: dict[str, dict[str, Any]] = {}
     transaction_examples: list[dict[str, Any]] = []
@@ -141,9 +138,6 @@ def _collect_paths(record: dict[str, Any], prefix: str, stats: dict[str, dict[st
                 entry["values"].add(value)
         elif len(entry["values"]) < DISTINCT_CAP:
             entry["values"].add(str(value)[:60])
-
-
-# ---- sweep ----
 
 
 def run_sweep(api: Api, start: date, end: date, pause: float) -> dict[str, Any]:
@@ -219,9 +213,6 @@ def _fetch_daily_visits(api: Api) -> dict[str, int]:
         page += 1
 
 
-# ---- limits / stability / ratelimit ----
-
-
 def run_limits(api: Api) -> dict[str, Any]:
     results = {}
     for limit in (5000, 0):
@@ -276,9 +267,6 @@ def run_ratelimit(api: Api) -> dict[str, Any]:
             "max": max(latencies),
         },
     }
-
-
-# ---- report ----
 
 
 def write_report(results: dict[str, Any], out_dir: Path) -> Path:

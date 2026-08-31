@@ -57,10 +57,6 @@ class BigQueryLoader:
         self._settings = settings
         self._client = client or bigquery.Client(project=settings.project, location=settings.location)
 
-    # ------------------------------------------------------------------ #
-    # Dataset / table lifecycle (idempotent)
-    # ------------------------------------------------------------------ #
-
     def ensure_dataset(self) -> None:
         """Create the destination dataset if it does not exist (idempotent)."""
         dataset_ref = bigquery.Dataset(self._dataset_id)
@@ -84,10 +80,6 @@ class BigQueryLoader:
                 lambda t=table: self._client.create_table(t, exists_ok=True),
                 context=f"create table {spec.name}",
             )
-
-    # ------------------------------------------------------------------ #
-    # Loads
-    # ------------------------------------------------------------------ #
 
     def replace_sessions_partition(self, rows: list[dict[str, Any]], partition_date: date) -> int:
         """Atomically replace one day's partition of ``ga_sessions_flat``.
@@ -128,10 +120,6 @@ class BigQueryLoader:
         finally:
             self._client.delete_table(staging_id, not_found_ok=True)
 
-    # ------------------------------------------------------------------ #
-    # Queries (used by quality checks / LLM summary / NL->SQL)
-    # ------------------------------------------------------------------ #
-
     def query_rows(
         self,
         sql: str,
@@ -165,10 +153,6 @@ class BigQueryLoader:
     def table_id(self, name: str) -> str:
         """Fully qualified table id for a table in the destination dataset."""
         return self._table_id(name)
-
-    # ------------------------------------------------------------------ #
-    # Internals
-    # ------------------------------------------------------------------ #
 
     @property
     def _dataset_id(self) -> str:
