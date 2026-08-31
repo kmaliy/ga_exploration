@@ -98,11 +98,58 @@ class TestValidateSql:
                 "wrapped partition column does not prune",
             ),
             ("SELECT visits FROM daily_visits WHERE visit_date = '2016-08-01'", "unbackticked table"),
+            (
+                # one allowlisted table must not smuggle in an unbackticked one
+                "SELECT s.c FROM `p.d.daily_visits` v JOIN otherproj.otherds.secret s "
+                "ON v.visit_date = s.d WHERE v.visit_date >= '2016-08-01'",
+                "unbackticked join target dodges the allowlist",
+            ),
+            (
+                "SELECT s.c FROM `p.d.daily_visits` v, otherproj.otherds.secret s "
+                "WHERE v.visit_date >= '2016-08-01'",
+                "comma cross-join dodges the allowlist",
+            ),
+            (
+                "SELECT visits FROM `p.d.daily_visits` "
+                "WHERE visit_date >= '2016-08-01' -- sneaky trailing comment",
+                "comments could hide a reference from the checks",
+            ),
+            (
+                "WITH x AS (SELECT d FROM otherproj.otherds.secret) "
+                "SELECT visits FROM `p.d.daily_visits` JOIN x ON TRUE "
+                "WHERE visit_date >= '2016-08-01'",
+                "unbackticked table inside a CTE body",
+            ),
         ],
     )
     def test_rejects(self, sql, reason):
         with pytest.raises(SqlGuardrailError):
             nl_sql.validate_sql(sql, ALLOWED, PARTITIONS)
+
+    @pytest.mark.parametrize(
+        "sql",
+        [
+            # CTE: bare names in FROM/JOIN are fine (they cannot address a table)
+            "WITH totals AS (SELECT visit_date, visits FROM `p.d.daily_visits` "
+            "WHERE visit_date BETWEEN '2016-08-01' AND '2016-08-07') "
+            "SELECT visit_date, visits FROM totals",
+            # subquery as a FROM target
+            "SELECT t.n FROM (SELECT COUNT(*) AS n FROM `p.d.ga_sessions_flat` "
+            "WHERE session_date = '2016-08-01') t",
+            # joining both allowlisted tables with qualified columns everywhere
+            "SELECT s.geo_country, v.visits FROM `p.d.ga_sessions_flat` s "
+            "JOIN `p.d.daily_visits` v ON s.session_date = v.visit_date "
+            "WHERE s.session_date BETWEEN '2016-08-01' AND '2016-08-07'",
+            # EXTRACT's FROM is not a clause; qualified column inside it is fine
+            "SELECT EXTRACT(HOUR FROM s.visit_start_time) AS h, COUNT(*) AS n "
+            "FROM `p.d.ga_sessions_flat` s "
+            "WHERE s.session_date = '2016-08-01' GROUP BY h",
+            # UNNEST as a join target
+            "SELECT n FROM `p.d.daily_visits` CROSS JOIN UNNEST([1, 2]) AS n WHERE visit_date = '2016-08-01'",
+        ],
+    )
+    def test_accepts_legitimate_relation_shapes(self, sql):
+        assert nl_sql.validate_sql(sql, ALLOWED, PARTITIONS)
 
 
 class TestAsk:

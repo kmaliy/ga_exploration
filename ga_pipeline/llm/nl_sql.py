@@ -5,7 +5,11 @@ must pass deterministic guardrails before it touches data:
 
 1. Read-only: one single SELECT/WITH statement, no DML/DDL keywords.
 2. Table allowlist: only the two destination tables — no other datasets,
-   no ``INFORMATION_SCHEMA``.
+   no ``INFORMATION_SCHEMA``. Every FROM/JOIN target (including comma
+   cross-joins) must be a backticked allowlisted id, a subquery, ``UNNEST``
+   or a CTE name; a qualified table referenced without backticks is refused
+   rather than let past the allowlist. SQL comments are refused outright so
+   they cannot hide a reference from the checks.
 3. Partition discipline: the statement must *filter* on a partition column
    (``session_date`` / ``visit_date``) — the same "never full-scan" rule the
    rest of the project documents for dashboards. Mentioning the column in a
@@ -44,6 +48,19 @@ _FORBIDDEN_KEYWORDS = re.compile(
 _BACKTICKED = re.compile(r"`([^`]+)`")
 _HAS_LIMIT = re.compile(r"(?i)\blimit\s+\d+\b")
 _COMPARISON = r"(?:=|!=|<>|<=|>=|<|>)"
+
+# Relation-target scan (see _check_relation_targets). Backticked ids are
+# masked with this placeholder after they pass the allowlist, so any dotted
+# name still visible to the scanner is an attempt to reach a table without
+# going through the allowlist.
+_ALLOWED_TABLE_PLACEHOLDER = "__allowed_table__"
+_STRING_LITERAL = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"")
+_COMMENT_MARKERS = ("--", "#", "/*")
+_SQL_TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_.]*|[(),]")
+# Keywords that end a FROM clause at its own nesting depth.
+_FROM_CLAUSE_ENDERS = frozenset(
+    {"where", "group", "order", "limit", "having", "qualify", "window", "union", "intersect", "except"}
+)
 
 
 def _filters_on(sql: str, field: str) -> bool:
@@ -131,6 +148,7 @@ def validate_sql(sql: str, allowed_tables: set[str], partition_fields: set[str])
         raise SqlGuardrailError("Tables must be referenced by their full backticked ids.")
     if unknown := referenced - allowed_tables:
         raise SqlGuardrailError(f"Table(s) not on the allowlist: {sorted(unknown)}.")
+    _check_relation_targets(sql)
     if not any(_filters_on(sql, field) for field in partition_fields):
         raise SqlGuardrailError(
             f"Query must filter a partition column ({', '.join(sorted(partition_fields))}) "
@@ -140,6 +158,67 @@ def validate_sql(sql: str, allowed_tables: set[str], partition_fields: set[str])
     if not _HAS_LIMIT.search(sql):
         sql = f"{sql}\nLIMIT {MAX_RESULT_ROWS}"
     return sql
+
+
+def _check_relation_targets(sql: str) -> None:
+    """Refuse FROM/JOIN targets that dodge the backticked-table allowlist.
+
+    The allowlist check above only sees *backticked* ids, so on its own it
+    would accept ``FROM `allowed` JOIN other.dataset.tbl`` — one allowlisted
+    table smuggling in an unchecked one. This scan walks every relation
+    target: after ``FROM``, after every ``JOIN``, and after commas at the FROM
+    clause's own nesting depth (comma cross-joins). A target must be a
+    backticked id (already validated, masked to a placeholder), a subquery,
+    or a dot-free name — ``UNNEST`` or a CTE, neither of which can address a
+    table: the loader never sets a default dataset, so BigQuery cannot
+    resolve a single-part name to one. Any dotted target is refused.
+
+    Comments are refused outright so they cannot hide a reference from this
+    scan, and ``EXTRACT(part FROM expr)`` is recognized so its ``FROM`` is
+    not mistaken for a clause. Coarse by design, like the keyword screen:
+    a rare awkward-but-legitimate query is refused rather than trusted.
+    """
+    masked = _BACKTICKED.sub(f" {_ALLOWED_TABLE_PLACEHOLDER} ", sql)
+    masked = _STRING_LITERAL.sub(" __literal__ ", masked)
+    for marker in _COMMENT_MARKERS:
+        if marker in masked:
+            raise SqlGuardrailError("SQL comments are not allowed.")
+
+    paren_is_extract: list[bool] = []  # one entry per open paren
+    from_depths: list[int] = []  # nesting depths with an open FROM clause
+    expect_target = False
+    previous = ""
+    for tok in _SQL_TOKEN.findall(masked):
+        if tok == "(":
+            paren_is_extract.append(previous == "extract")
+            expect_target = False  # subquery target, or a function argument list
+            previous = ""
+            continue
+        if tok == ")":
+            if paren_is_extract:
+                paren_is_extract.pop()
+            while from_depths and from_depths[-1] > len(paren_is_extract):
+                from_depths.pop()
+            previous = ""
+            continue
+        if tok == ",":
+            if from_depths and from_depths[-1] == len(paren_is_extract):
+                expect_target = True  # comma cross-join
+            previous = ""
+            continue
+        word = tok.lower()
+        if expect_target:
+            if word != _ALLOWED_TABLE_PLACEHOLDER and "." in tok:
+                raise SqlGuardrailError(f"Relation {tok!r} must be a full backticked id from the allowlist.")
+            expect_target = False
+        elif word == "from" and not (paren_is_extract and paren_is_extract[-1]):
+            from_depths.append(len(paren_is_extract))
+            expect_target = True
+        elif word == "join":
+            expect_target = True
+        elif word in _FROM_CLAUSE_ENDERS and from_depths and from_depths[-1] == len(paren_is_extract):
+            from_depths.pop()
+        previous = word
 
 
 def _extract_sql(raw: str) -> str:
@@ -157,7 +236,7 @@ def _prompt(question: str, loader: BigQueryLoader) -> str:
         f"{_schema_block(loader)}\n"
         "Data covers 2016-08-01 through 2017-08-01.\n"
         "Rules:\n"
-        "- Reply with exactly one SELECT statement and nothing else (no markdown, no prose).\n"
+        "- Reply with exactly one SELECT statement and nothing else (no markdown, no prose, no SQL comments).\n"
         "- Reference tables by the full backticked ids above; use no other tables.\n"
         "- ALWAYS filter the partition column (session_date / visit_date) to the narrowest\n"
         "  date range that answers the question; never scan the full table.\n"
