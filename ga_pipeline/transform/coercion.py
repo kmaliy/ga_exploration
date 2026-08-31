@@ -52,23 +52,47 @@ def require_field(record: dict[str, Any], *names: str) -> Any:
     return value
 
 
+_TRUE_STRINGS = frozenset({"true", "1", "yes"})
+_FALSE_STRINGS = frozenset({"false", "0", "no"})
+
+
 def to_int(value: Any) -> int | None:
-    """Coerce to int, returning None for empty or non-numeric values."""
+    """Coerce to int, returning None for empty or non-numeric values.
+
+    Integral float strings ("1.0") count as ints; fractional values do not —
+    silently truncating "2.5" would hide a contract change, so it is NULL.
+    """
     if value is None or value == "":
         return None
     try:
         return int(value)
     except (TypeError, ValueError):
+        pass
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
         return None
+    return int(number) if number.is_integer() else None
 
 
 def to_bool(value: Any) -> bool | None:
-    """Coerce to bool, accepting the string forms the API sends."""
+    """Coerce to bool, accepting the string forms the API sends.
+
+    Only recognized forms map to a value; anything else — including the
+    demo-dataset placeholder — is None. Defaulting unknown strings to False
+    would silently record a wrong value instead of a NULL (and let
+    ``device_category`` be derived from garbage).
+    """
     if value is None:
         return None
     if isinstance(value, bool):
         return value
-    return str(value).strip().lower() in {"true", "1", "yes"}
+    text = str(value).strip().lower()
+    if text in _TRUE_STRINGS:
+        return True
+    if text in _FALSE_STRINGS:
+        return False
+    return None
 
 
 def to_str(value: Any) -> str | None:

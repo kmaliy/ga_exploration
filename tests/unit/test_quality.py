@@ -43,6 +43,14 @@ class TestSessionsPreLoad:
         with pytest.raises(DataQualityError, match="outside partition date"):
             quality.check_sessions_pre_load(rows, DAY, 0).raise_if_failed()
 
+    def test_row_missing_the_date_field_fails_not_crashes(self):
+        # Regression: this used to KeyError inside the check instead of
+        # recording a violation.
+        row = make_session_row()
+        del row["session_date"]
+        with pytest.raises(DataQualityError):
+            quality.check_sessions_pre_load([row], DAY, 0).raise_if_failed()
+
     def test_duplicate_grain_fails(self):
         rows = [make_session_row(), make_session_row()]
         with pytest.raises(DataQualityError, match="dedupe is broken"):

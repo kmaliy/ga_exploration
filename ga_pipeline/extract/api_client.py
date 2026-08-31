@@ -25,6 +25,11 @@ GA_SESSIONS_PATH = "/ga-sessions-data"
 _RETRY_STATUSES = (429, 500, 502, 503, 504)
 # Keys under which APIs commonly nest their record list; probed in order.
 _RECORD_CONTAINER_KEYS = ("data", "items", "results", "records", "rows")
+# Runaway guard for _iter_paginated: at the default page size this allows
+# ~5M records per request, far beyond one day of this dataset. Hitting it
+# means the API is ignoring the page parameter (looping on the same full
+# page forever), which must fail loudly, not extract forever.
+_MAX_PAGES = 10_000
 
 
 class AssessmentApiClient:
@@ -49,10 +54,12 @@ class AssessmentApiClient:
         The API returns HTTP 500 for pages past the end, so the loop stops on
         ``pagination.has_next`` instead of requesting one page too many. If a
         response carries no pagination metadata, a short page ends the loop.
+        ``_MAX_PAGES`` backstops a server that ignores the page parameter,
+        where a full page would otherwise repeat forever.
         """
         page = 1
         page_size = self._settings.page_size
-        while True:
+        while page <= _MAX_PAGES:
             payload = self._get(path, {**params, "page": page, "limit": page_size})
             records, has_next = self._parse_page(payload)
             yield from records
@@ -63,6 +70,10 @@ class AssessmentApiClient:
             elif len(records) < page_size:
                 return
             page += 1
+        raise FatalApiError(
+            f"GET {path}: still paginating after {_MAX_PAGES} pages; "
+            "the API appears to ignore the page parameter"
+        )
 
     def _get(self, path: str, params: dict[str, Any]) -> Any:
         url = f"{self._settings.base_url}{path}"

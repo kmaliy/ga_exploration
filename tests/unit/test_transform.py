@@ -4,6 +4,7 @@ import pytest
 
 from ga_pipeline import transform
 from ga_pipeline.exceptions import FatalApiError, SchemaDriftError
+from ga_pipeline.transform.coercion import DEMO_SENTINEL, to_bool, to_int
 
 LOADED_AT = datetime(2026, 8, 24, 12, 0, tzinfo=UTC)
 
@@ -106,6 +107,65 @@ class TestFlattenSession:
     def test_missing_visit_id_raises(self):
         with pytest.raises(FatalApiError):
             transform.flatten_session({"date": "20160801", "fullVisitorId": "1"}, LOADED_AT)
+
+
+class TestBoolCoercion:
+    """Only recognized forms map to a value; garbage is NULL, never False."""
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            (True, True),
+            (False, False),
+            ("true", True),
+            ("FALSE", False),
+            ("1", True),
+            ("0", False),
+            ("yes", True),
+            ("no", False),
+            (1, True),
+            (0, False),
+        ],
+    )
+    def test_recognized_forms(self, value, expected):
+        assert to_bool(value) is expected
+
+    def test_demo_sentinel_is_null_not_false(self):
+        assert to_bool(DEMO_SENTINEL) is None
+
+    def test_unrecognized_string_is_null(self):
+        assert to_bool("n/a") is None
+
+    def test_sentinel_booleans_flatten_to_null_not_desktop(self):
+        # Regression: to_bool(sentinel) was False, so device_category was
+        # silently derived as "desktop" from a placeholder string.
+        record = {
+            "date": "20160801",
+            "fullVisitorId": "1",
+            "visitId": 2,
+            "device": {"isMobile": DEMO_SENTINEL},
+            "trafficSource": {"isTrueDirect": DEMO_SENTINEL},
+        }
+        row = transform.flatten_session(record, LOADED_AT)
+        assert row["device_is_mobile"] is None
+        assert row["traffic_is_true_direct"] is None
+        assert row["device_category"] is None
+
+
+class TestIntCoercion:
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            ("7", 7),
+            ("1.0", 1),  # integral float string counts as an int
+            (2.0, 2),
+            ("", None),
+            ("n/a", None),
+            ("2.5", None),  # fractional: NULL beats silent truncation
+        ],
+    )
+    def test_coercion(self, value, expected):
+        assert to_int(value) == expected
 
 
 class TestDedupe:

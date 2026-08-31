@@ -10,10 +10,11 @@ Requirements implemented
 
 Design notes
 ------------
-* Each run processes the days of its own data interval (i.e. everything since
-  the previous scheduled run), clamped to the dataset's documented range,
-  so ``catchup=True`` backfills deterministically and reruns are idempotent
-  (partition replacement / MERGE inside the pipeline module).
+* Each run processes every day its own data interval touches (everything
+  since the previous scheduled run, including the day in progress for the
+  18:00 run), clamped to the dataset's documented range, so ``catchup=True``
+  backfills deterministically and reruns are idempotent (partition
+  replacement / MERGE inside the pipeline module).
 * Tasks only retry on transient errors by design: the pipeline raises
   ``TransientApiError`` / ``TransientLoadError`` for retryable conditions and
   fatal errors otherwise; retrying a 401 twice with 5-minute delays would
@@ -93,9 +94,19 @@ DEFAULT_ARGS = {
 
 
 def _window_from_context(context: dict) -> tuple[date, date] | None:
-    """Days covered by this run's data interval, clamped to the dataset range."""
+    """Days touched by this run's data interval, clamped to the dataset range.
+
+    The interval is the half-open ``[data_interval_start, data_interval_end)``,
+    so its last covered instant is one microsecond before the end — which is
+    what decides the final day, NOT ``data_interval_end.date() - 1 day``. The
+    two differ for intervals that end mid-day: with this schedule the 18:00
+    run covers Wednesday 06:00-18:00, and subtracting a whole day made its
+    window empty, so the second run of the day never processed anything. Now
+    it (re)loads Wednesday; loads are idempotent, and the day's final state
+    lands with the next run that touches it.
+    """
     start = context["data_interval_start"].date()
-    end = context["data_interval_end"].date() - timedelta(days=1)
+    end = (context["data_interval_end"] - timedelta(microseconds=1)).date()
     start, end = max(start, DATASET_MIN_DATE), min(end, DATASET_MAX_DATE)
     if start > end:
         return None

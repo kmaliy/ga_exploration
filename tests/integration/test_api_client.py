@@ -97,6 +97,18 @@ class TestPagination:
         assert list(client.iter_ga_sessions("20160801")) == []
         assert len(session.calls) == 1
 
+    def test_page_ignoring_api_hits_the_runaway_guard(self, monkeypatch):
+        # A server that ignores the page parameter returns the same full page
+        # forever; the guard must turn that into a loud failure, not a hang.
+        from ga_pipeline.extract import api_client
+
+        monkeypatch.setattr(api_client, "_MAX_PAGES", 3)
+        full_page = FakeResponse(json_data=[{"a": 1}, {"a": 2}])  # full (size 2), no metadata
+        client, session = make_client([full_page] * 3)
+        with pytest.raises(FatalApiError, match="page parameter"):
+            list(client.iter_ga_sessions("20160801"))
+        assert len(session.calls) == 3
+
     def test_sends_auth_header_and_params(self):
         client, session = make_client([FakeResponse(json_data=[])])
         list(client.iter_ga_sessions("20160801"))

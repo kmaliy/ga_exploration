@@ -277,9 +277,11 @@ def _check_single_date(
     report: QualityReport, rows: list[dict[str, Any]], field_name: str, expected: date
 ) -> None:
     report.checks_run += 1
-    bad = {row[field_name] for row in rows if row.get(field_name) != expected.isoformat()}
+    # .get twice, and sort by str: a row missing the field entirely must fail
+    # the check as None, not crash it with a KeyError / unorderable sort.
+    bad = {row.get(field_name) for row in rows if row.get(field_name) != expected.isoformat()}
     if bad:
-        report.fail(f"rows outside partition date {expected}: {sorted(bad)[:5]}")
+        report.fail(f"rows outside partition date {expected}: {sorted(bad, key=str)[:5]}")
 
 
 def _check_unique_grain(report: QualityReport, rows: list[dict[str, Any]]) -> None:
