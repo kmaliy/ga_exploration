@@ -43,6 +43,14 @@ def test_no_catchup_and_serialized_runs(dag):
     assert dag.max_active_runs == 1
 
 
+def test_failure_callback_is_task_level_on_every_task(dag):
+    """Task-level (via default_args), not DAG-level: only the task-failure
+    context carries ``exception`` and the failed ti, which triage needs to
+    match the exception class to its playbook."""
+    for task in dag.tasks:
+        assert task.on_failure_callback, f"{task.task_id} has no failure callback"
+
+
 def test_failure_callback_triages_and_redacts(dag, monkeypatch, caplog):
     """The failure hook must alert (with triage), never raise, and never leak secrets."""
     import logging
@@ -54,7 +62,7 @@ def test_failure_callback_triages_and_redacts(dag, monkeypatch, caplog):
         task_id = "extract_load_ga_sessions"
         try_number = 3
 
-    callback = dag.on_failure_callback
+    callback = dag.get_task("extract_load_ga_sessions").on_failure_callback
     if isinstance(callback, list):
         callback = callback[0]
     context = {

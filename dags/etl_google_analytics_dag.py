@@ -41,17 +41,16 @@ LOCAL_TZ = pendulum.timezone("Europe/Berlin")
 DATASET_MIN_DATE = min(DAILY_VISITS_RANGE[0], GA_SESSIONS_RANGE[0])
 DATASET_MAX_DATE = GA_SESSIONS_RANGE[1]
 
-DEFAULT_ARGS = {
-    "owner": "data-engineering",
-    "depends_on_past": False,
-    "retries": 2,
-    "retry_delay": timedelta(minutes=5),
-    "execution_timeout": timedelta(minutes=3),
-}
-
 
 def _notify_failure(context: dict) -> None:
     """Failure hook: deterministic alert plus optional LLM triage.
+
+    Registered per task via ``DEFAULT_ARGS`` (not on the DAG object): a
+    task-level callback fires once the failing task has exhausted its
+    retries, with the *failed* task's context — ``context["exception"]`` set
+    and ``ti`` pointing at the failed task instance. A DAG-level callback
+    gets neither (no exception, and ``ti`` is just the run's last task), so
+    the triage playbook could never match the exception class there.
 
     Keep payloads out of the message: task metadata and a *redacted* error
     only, no row data (PII hygiene, see docs/airflow.md). ``triage_failure``
@@ -81,6 +80,16 @@ def _notify_failure(context: dict) -> None:
     logger.error("Triage:\n%s", summary)
     # Production: post to an incident channel, e.g.
     # requests.post(os.environ["SLACK_WEBHOOK_URL"], json={...summary and task metadata...})
+
+
+DEFAULT_ARGS = {
+    "owner": "data-engineering",
+    "depends_on_past": False,
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
+    "execution_timeout": timedelta(minutes=3),
+    "on_failure_callback": _notify_failure,  # task-level: see _notify_failure docstring
+}
 
 
 def _window_from_context(context: dict) -> tuple[date, date] | None:
@@ -120,8 +129,7 @@ with DAG(
     schedule="0 6,18 * * 3",  # Wednesdays 06:00 and 18:00 (Europe/Berlin)
     start_date=pendulum.datetime(2016, 8, 3, tz=LOCAL_TZ),  # first Wednesday in range
     catchup=False,  # flip to True to backfill the historical window
-    default_args=DEFAULT_ARGS,
-    on_failure_callback=_notify_failure,
+    default_args=DEFAULT_ARGS,  # includes the per-task failure callback
     max_active_runs=1,  # loads are idempotent, but serialize to keep DQ signal clean
     tags=["etl", "bigquery", "google-analytics"],
     doc_md=__doc__,
